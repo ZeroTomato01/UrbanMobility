@@ -1,0 +1,9 @@
+from datetime import date
+
+class User:
+    role: str # User role: "Super Administrator", "System Administrator", "Service Engineer"
+    username: str # cryptographically secure username
+    password: str # Hashed password
+    first_name: str
+    last_name: str
+    registration_date: date
