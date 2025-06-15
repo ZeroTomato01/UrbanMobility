@@ -11,7 +11,7 @@ class Utility:
         conn = sqlite3.connect('scooters.db')
         c = conn.cursor()
         c.execute('''
-            INSERT OR REPLACE INTO scooters VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT OR REPLACE INTO scooters VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             scooter.serial_number,
             scooter.brand,
@@ -25,7 +25,8 @@ class Utility:
             scooter.location[1],
             int(scooter.out_of_service),
             scooter.mileage,
-            scooter.last_maintenance_date.isoformat()
+            scooter.last_maintenance_date.isoformat(),
+            scooter.in_service_date.isoformat()
         ))
         conn.commit()
         conn.close()
@@ -35,7 +36,7 @@ class Utility:
         key = Fernet.generate_key()
         with open("fernet.key", "wb") as key_file:
             key_file.write(key)
-            
+
     @staticmethod
     def load_key():
         with open("fernet.key", "rb") as key_file:
