@@ -1,19 +1,17 @@
 from Utils import Utility
 from InitDB import InitDB
-from Menu import login, super_admin_menu, system_admin_menu, service_engineer_menu
+from Menu import Menu
 
 
 def main():
+    user = Menu.login()
     while True:
-        role = login()
-        if role == "Super Administrator":
-            super_admin_menu()
-        elif role == "System Administrator":
-            system_admin_menu()
-        elif role == "Service Engineer":
-            service_engineer_menu()
-        else:
-            break
+        if user.role == "Super Administrator":
+            Menu.super_admin_menu()
+        elif user.role == "System Administrator":
+            Menu.system_admin_menu()
+        elif user.role == "Service Engineer":
+            Menu.service_engineer_menu()
 
 if __name__ == "__main__":
     main()

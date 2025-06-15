@@ -1,5 +1,7 @@
 from datetime import date
+from dataclasses import dataclass
 
+@dataclass
 class User:
     role: str # User role: "Super Administrator", "System Administrator", "Service Engineer"
     username: str # cryptographically secure username

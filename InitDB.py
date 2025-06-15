@@ -1,6 +1,5 @@
 import sqlite3
 import hashlib
-from cryptography.fernet import Fernet
 from Utils import Utility
 
 class InitDB:
@@ -45,7 +44,7 @@ class InitDB:
                 password TEXT NOT NULL,
                 first_name TEXT,
                 last_name TEXT,
-                registration_date TEXT DEFAULT (datetime('now'))
+                registration_date TEXT DEFAULT (date('now'))
             )
         ''')
         conn.commit()
