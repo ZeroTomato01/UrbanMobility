@@ -1,5 +1,6 @@
 import sqlite3
 import hashlib
+from Models.User import User
 from Utils import Utility
 
 class Menu:
@@ -29,6 +30,7 @@ class Menu:
                 continue
 
             return user
+        
 
 
 
@@ -38,6 +40,7 @@ class Menu:
         ("1", "Update own password"),
         ("2", "Update scooter attributes"),
         ("3", "Search/retrieve scooter info"),
+        ("4", "Print profile info"),
         ("0", "Logout"),
         ]
         while True:
@@ -134,6 +137,9 @@ class Menu:
                     print("List users and roles selected.")
                 case "4":
                     print("Add Service Engineer selected.")
+                    user = User(role="Service Engineer")
+                    user = Utility.Validate_service_engineer(user)
+                    Utility.Add_user_toDB(user)
                 case "5":
                     print("Update Service Engineer profile selected.")
                 case "6":
