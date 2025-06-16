@@ -34,7 +34,7 @@ class Menu:
 
 
     @staticmethod
-    def service_engineer_menu():
+    def service_engineer_menu(user: User):
         menu_options = [
         ("1", "Update own password"),
         ("2", "Update scooter attributes"),
@@ -53,15 +53,22 @@ class Menu:
                     exit()
                 case "1":
                     print("Update own password selected.")
+                    row_id = Utility.fetch_userinfo(user.username, row_id=True)
+                    new_password = Utility.validate_input("Enter new password: ", custom_validator=Utility.is_valid_password)
+                    Utility.update_password(new_password, row_id)
+
                 case "2":
                     print("Update scooter attributes selected.")
                 case "3":
                     print("search/retrieve scooter info selected.")
+                case "4":
+                    print("Print profile info selected.")
+                    Utility.print_userinfo(user)
                 case _:
                     print("Invalid option. Please try again.")
 
     @staticmethod
-    def system_admin_menu():
+    def system_admin_menu(user: User):
         while True:
             print("\n--- System Administrator Menu ---")
             print("1. Update own password")
@@ -90,7 +97,7 @@ class Menu:
             # TODO: Implement each option
 
     @staticmethod
-    def super_admin_menu():
+    def super_admin_menu(user: User):
         menu_options = [
             ("1", "Update scooter attributes"),
             ("2", "Search/retrieve scooter info"),
@@ -136,9 +143,9 @@ class Menu:
                     print("List users and roles selected.")
                 case "4":
                     print("Add Service Engineer selected.")
-                    user = User(role="Service Engineer")
-                    user = Utility.Validate_service_engineer(user)
-                    Utility.Add_user(user)
+                    new_user = User(role="Service Engineer")
+                    new_user = Utility.Validate_service_engineer(new_user)
+                    Utility.Add_user(new_user)
                 case "5":
                     print("Update Service Engineer profile selected.")
                 case "6":

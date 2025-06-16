@@ -102,12 +102,12 @@ class Utility:
         return cipher_suite
     
     @staticmethod
-    def fetch_userinfo(username, check_username=False):
+    def fetch_userinfo(username, check_username=False, row_id=False):
         encrypt = Utility.load_key()
         conn = sqlite3.connect('users.db')
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
-        c.execute("SELECT * FROM users")
+        c.execute("SELECT rowid, * FROM users")
         rows = c.fetchall()
         conn.close()
         for row in rows:
@@ -116,17 +116,29 @@ class Utility:
                 reg_date = datetime.strptime(row['registration_date'], "%Y-%m-%d").date()
                 if check_username:
                     return False  # Username exists
+                if row_id:
+                    return row['rowid']
                 return User(
                     role=row['role'],
-                    username=row['username'],
+                    username=encrypt.decrypt(row['username']).decode('utf-8'),
                     password=row['password'],
-                    first_name=row['first_name'],
-                    last_name=row['last_name'],
+                    first_name=encrypt.decrypt(row['first_name']).decode('utf-8'),
+                    last_name=encrypt.decrypt(row['last_name']).decode('utf-8'),
                     registration_date=reg_date
                 )
         if check_username:
             return True
         return None
+    
+    @staticmethod
+    def update_password(password, row_id):
+        conn = sqlite3.connect('users.db')
+        c = conn.cursor()
+        hash_password = hashlib.sha256(password.encode('utf-8')).hexdigest()
+        c.execute("UPDATE users SET password = ? WHERE rowid = ?", (hash_password, row_id))
+        conn.commit()
+        conn.close()
+        print("Password updated successfully.")
     
 
     edit_permissions = {
@@ -252,3 +264,10 @@ class Utility:
 
     # Example usage:
     # username = validate_input("Enter username: ", min_length=8, max_length=10, custom_validator=Utility.is_valid_username)
+    @staticmethod
+    def print_userinfo(user: User):
+        print(f"Role: {user.role}")
+        print(f"Username: {user.username}")
+        print(f"First Name: {user.first_name}")
+        print(f"Last Name: {user.last_name}")
+        print(f"Registration Date: {user.registration_date.isoformat()}")
