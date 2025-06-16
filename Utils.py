@@ -7,6 +7,7 @@ import os
 import zipfile
 import re
 import shutil
+import hashlib
 
 class Utility:
     def __init__(self):
@@ -38,45 +39,31 @@ class Utility:
     
     @staticmethod
     def Add_user(user):
+        encrypt = Utility.load_key()
+        enc_username = encrypt.encrypt(user.username.encode('utf-8'))
+        hash_password = hashlib.sha256(user.password.encode('utf-8')).hexdigest()
+        enc_first_name = encrypt.encrypt(user.first_name.encode('utf-8'))
+        enc_last_name = encrypt.encrypt(user.last_name.encode('utf-8'))
         conn = sqlite3.connect('users.db')
         c = conn.cursor()
         c.execute('''
             INSERT OR REPLACE INTO users (role, username, password, first_name, last_name) VALUES (?, ?, ?, ?, ?)
         ''', (
             user.role,
-            user.username,
-            user.password,
-            user.first_name,
-            user.last_name,
+            enc_username,
+            hash_password,
+            enc_first_name,
+            enc_last_name,
         ))
         conn.commit()
         conn.close()
     
     @staticmethod
     def Validate_service_engineer(user):
-        while True:
-            user.username = input("Enter username: ")
-            if not Utility.is_valid_username(user.username):
-                print("Invalid username format.")
-                continue
-            else:
-                break
-        while True:
-            user.password = input("Enter password: ")
-            if not Utility.is_valid_password(user.password):
-                print("Invalid password format.")
-                continue
-            else:
-                break
-        while True:
-            user.first_name = input("Enter first name: ").strip()
-            user.last_name = input("Enter last name: ").strip()
-            if not user.first_name or not user.last_name:
-                print("First name and last name cannot be empty.")
-                continue
-            else:
-                break
-        # All checks passed
+        user.username = Utility.validate_input("Enter username: ", custom_validator=Utility.is_valid_username)
+        user.password = Utility.validate_input("Enter password: ", custom_validator=Utility.is_valid_password)
+        user.first_name = Utility.validate_input("Enter first name: ", min_length=2, max_length=20)
+        user.last_name = Utility.validate_input("Enter last name: ", min_length=2, max_length=20)
         return user
 
     @staticmethod
@@ -238,3 +225,30 @@ class Utility:
             return False
 
         return True
+    
+    @staticmethod
+    def validate_input(
+        prompt: str,
+        min_length: int = 1,
+        max_length: int = 255,
+        allow_null_byte: bool = False,
+        custom_validator=None
+    ):
+        while True:
+            value = input(prompt)
+            if not value:
+                print("Input cannot be empty.")
+                continue
+            if not allow_null_byte and '\x00' in value:
+                print("Input cannot contain null bytes.")
+                continue
+            if not (min_length <= len(value) <= max_length):
+                print(f"Input must be between {min_length} and {max_length} characters.")
+                continue
+            if custom_validator and not custom_validator(value):
+                print("Input failed custom validation.")
+                continue
+            return value
+
+    # Example usage:
+    # username = validate_input("Enter username: ", min_length=8, max_length=10, custom_validator=Utility.is_valid_username)
