@@ -13,7 +13,7 @@ class Utility:
         raise NotImplementedError("This class is not meant to be instantiated directly.")
     
     @staticmethod
-    def Save_scooter(scooter: Scooter):
+    def Add_scooter(scooter: Scooter):
         conn = sqlite3.connect('scooters.db')
         c = conn.cursor()
         c.execute('''
@@ -37,7 +37,7 @@ class Utility:
         conn.close()
     
     @staticmethod
-    def Add_user_toDB(user):
+    def Add_user(user):
         conn = sqlite3.connect('users.db')
         c = conn.cursor()
         c.execute('''
@@ -59,25 +59,28 @@ class Utility:
             if not Utility.is_valid_username(user.username):
                 print("Invalid username format.")
                 continue
-
+            else:
+                break
+        while True:
             user.password = input("Enter password: ")
             if not Utility.is_valid_password(user.password):
                 print("Invalid password format.")
                 continue
-
+            else:
+                break
+        while True:
             user.first_name = input("Enter first name: ").strip()
             user.last_name = input("Enter last name: ").strip()
             if not user.first_name or not user.last_name:
                 print("First name and last name cannot be empty.")
                 continue
-
-            # All checks passed
-            return user
+            else:
+                break
+        # All checks passed
+        return user
 
     @staticmethod
     def log_activity(username, activity, additional_info="", suspicious=False):
-
-
         encrypt = Utility.load_key()
         enc_username = encrypt.encrypt(username.encode('utf-8'))
         enc_activity = encrypt.encrypt(activity.encode('utf-8'))

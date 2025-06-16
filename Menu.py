@@ -1,4 +1,3 @@
-import sqlite3
 import hashlib
 from Models.User import User
 from Utils import Utility
@@ -139,7 +138,7 @@ class Menu:
                     print("Add Service Engineer selected.")
                     user = User(role="Service Engineer")
                     user = Utility.Validate_service_engineer(user)
-                    Utility.Add_user_toDB(user)
+                    Utility.Add_user(user)
                 case "5":
                     print("Update Service Engineer profile selected.")
                 case "6":
