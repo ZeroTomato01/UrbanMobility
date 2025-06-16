@@ -27,7 +27,7 @@ class InitDB:
                     driving_license_number GLOB '[A-Z][A-Z]???????' OR
                     driving_license_number GLOB '[A-Z]????????'
                 ) NOT NULL,
-                registration_date TEXT DEFAULT (datetime('now'))
+                registration_date TEXT DEFAULT (date('now'))
             )
         ''')
         conn.commit()
@@ -93,12 +93,39 @@ class InitDB:
                 out_of_service INTEGER CHECK(out_of_service IN (0, 1)) DEFAULT 0,
                 mileage REAL CHECK(mileage >= 0),
                 last_maintenance_date TEXT,
-                in_service_date TEXT DEFAULT (datetime('now'))
+                in_service_date TEXT DEFAULT (date('now'))
             )
         ''')
         conn.commit()
         conn.close()
     
+    @staticmethod
+    def Init_logdb():
+        conn = sqlite3.connect('logs.db')
+        c = conn.cursor()
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                date TEXT DEFAULT (date('now')),
+                time TEXT DEFAULT (time('now')),
+                username TEXT,
+                activity TEXT NOT NULL,
+                additional_info TEXT,
+                suspicious INTEGER NOT NULL DEFAULT 0,
+                unread INTEGER NOT NULL DEFAULT 1
+            )
+        ''')
+        conn.commit()
+        conn.close()
+
+    @staticmethod
+    def Del_logdb():
+        conn = sqlite3.connect('logs.db')
+        c = conn.cursor()
+        c.execute('DROP TABLE IF EXISTS logs')
+        conn.commit()
+        conn.close()
+        
     @staticmethod
     def Del_scooterdb():
         conn = sqlite3.connect('scooters.db')

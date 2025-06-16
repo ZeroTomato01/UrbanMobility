@@ -32,7 +32,31 @@ class Utility:
         ))
         conn.commit()
         conn.close()
-    
+
+    @staticmethod
+    def log_activity(username, activity, additional_info="", suspicious=False):
+
+
+        encrypt = Utility.load_key()
+        enc_username = encrypt.encrypt(username.encode('utf-8'))
+        enc_activity = encrypt.encrypt(activity.encode('utf-8'))
+        enc_additional = encrypt.encrypt(additional_info.encode('utf-8'))
+
+        conn = sqlite3.connect('logs.db')
+        c = conn.cursor()
+        c.execute('''
+            INSERT INTO logs (username, activity, additional_info, suspicious, unread)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (
+            enc_username,
+            enc_activity,
+            enc_additional,
+            1 if suspicious else 0, # 1 for true, 0 for false
+            1  # unread by default
+        ))
+        conn.commit()
+        conn.close()
+
     @staticmethod
     def generate_key():
         key = Fernet.generate_key()
