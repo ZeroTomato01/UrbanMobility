@@ -3,6 +3,10 @@ from Models.Scooter import Scooter
 from Models.User import User
 from cryptography.fernet import Fernet
 from datetime import datetime
+import os
+import zipfile
+import re
+import shutil
 
 class Utility:
     def __init__(self):
@@ -71,7 +75,7 @@ class Utility:
         return cipher_suite
     
     @staticmethod
-    def fetch_userinfo(username):
+    def fetch_userinfo(username, check_username=False):
         encrypt = Utility.load_key()
         conn = sqlite3.connect('users.db')
         conn.row_factory = sqlite3.Row
@@ -83,6 +87,8 @@ class Utility:
             decrypted_username = encrypt.decrypt(row['username']).decode('utf-8')
             if decrypted_username == username:
                 reg_date = datetime.strptime(row['registration_date'], "%Y-%m-%d").date()
+                if check_username:
+                    return False  # Username exists
                 return User(
                     role=row['role'],
                     username=row['username'],
@@ -115,3 +121,78 @@ class Utility:
     @staticmethod
     def can_edit(field: str, role: str) -> bool:
         return role in Utility.get_roles_for_field(field)
+    
+    @staticmethod
+    def create_backup():
+        db_files = ['users.db', 'scooters.db', 'traveller.db']
+        backup_dir = 'backups'
+        os.makedirs(backup_dir, exist_ok=True)
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        backup_filename = f'backup_{timestamp}.zip'
+        backup_path = os.path.join(backup_dir, backup_filename)
+
+        with zipfile.ZipFile(backup_path, 'w') as backup_zip:
+            for db_file in db_files:
+                if os.path.exists(db_file):
+                    backup_zip.write(db_file)
+                else:
+                    print(f"Warning: {db_file} not found and will not be included in the backup.")
+
+        print(f"Backup created: {backup_path}")
+        return backup_path
+    
+    @staticmethod
+    def restore_backup(backup_zip_path):
+        """
+        Replace the current databases with those from the given backup zip file.
+        """
+        db_files = ['users.db', 'scooters.db', 'traveller.db']
+
+        # Extract backup zip to a temporary directory
+        temp_dir = "temp_restore"
+        os.makedirs(temp_dir, exist_ok=True)
+        with zipfile.ZipFile(backup_zip_path, 'r') as zip_ref:
+            zip_ref.extractall(temp_dir)
+
+        # Replace each db file with the one from the backup
+        for db_file in db_files:
+            backup_db_path = os.path.join(temp_dir, db_file)
+            if os.path.exists(backup_db_path):
+                shutil.copy2(backup_db_path, db_file)
+                print(f"Restored {db_file} from backup.")
+            else:
+                print(f"Warning: {db_file} not found in backup and was not restored.")
+
+        # Clean up temporary directory
+        shutil.rmtree(temp_dir)
+        print("Restore complete.")
+    
+    @staticmethod
+    def is_valid_username(username):
+        if not Utility.fetch_userinfo(username, check_username=True):
+            return False  # Username exists
+        pattern = r"^[a-zA-Z_][a-zA-Z0-9_'.]{7,9}$"
+        return bool(re.fullmatch(pattern, username, re.IGNORECASE))
+    
+    @staticmethod
+    def is_valid_password(password):
+        # Length check
+        if not (12 <= len(password) <= 30):
+            return False
+
+        # Allowed characters
+        allowed_pattern = r"^[a-zA-Z0-9~!@#$%&_\-\+=`|\\\(\)\{\}\[\]:;'<>,\.?\/]+$"
+        if not re.fullmatch(allowed_pattern, password):
+            return False
+
+        # At least one lowercase, one uppercase, one digit, one special character
+        if not re.search(r"[a-z]", password):
+            return False
+        if not re.search(r"[A-Z]", password):
+            return False
+        if not re.search(r"\d", password):
+            return False
+        if not re.search(r"[~!@#$%&_\-\+=`|\\\(\)\{\}\[\]:;'<>,\.?\/]", password):
+            return False
+
+        return True

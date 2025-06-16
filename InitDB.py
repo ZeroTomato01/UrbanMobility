@@ -13,7 +13,7 @@ class InitDB:
         c.execute('''
             CREATE TABLE IF NOT EXISTS travellers (
                 customer_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                first_name TEXT NOT NULL,
+                first_name TEXT NOT NULL, 
                 last_name TEXT NOT NULL,
                 birthday TEXT NOT NULL,
                 gender TEXT CHECK(gender IN ('male', 'female')) NOT NULL,
