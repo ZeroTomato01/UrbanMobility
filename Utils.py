@@ -3,9 +3,9 @@ from Models.Scooter import Scooter
 from Models.User import User
 from cryptography.fernet import Fernet
 from datetime import datetime
+from Validate import Validate
 import os
 import zipfile
-import re
 import shutil
 import hashlib
 
@@ -15,56 +15,61 @@ class Utility:
     
     @staticmethod
     def Add_scooter(scooter: Scooter):
-        conn = sqlite3.connect('scooters.db')
-        c = conn.cursor()
-        c.execute('''
-            INSERT OR REPLACE INTO scooters (serial_number, brand, model, top_speed, battery_capacity, soc, target_range_soc_min, target_range_soc_max, latitude, longitude, out_of_service, mileage, last_maintenance_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            scooter.serial_number,
-            scooter.brand,
-            scooter.model,
-            scooter.top_speed,
-            scooter.battery_capacity,
-            scooter.soc,
-            scooter.target_range_soc[0],
-            scooter.target_range_soc[1],
-            scooter.location[0],
-            scooter.location[1],
-            int(scooter.out_of_service),
-            scooter.mileage,
-            scooter.last_maintenance_date.isoformat(),
-        ))
-        conn.commit()
-        conn.close()
+        try:
+            conn = sqlite3.connect('scooters.db')
+            c = conn.cursor()
+            c.execute('''
+                INSERT INTO scooters (
+                    serial_number, brand, model, top_speed, battery_capacity, soc,
+                    target_range_soc_min, target_range_soc_max,
+                    latitude, longitude, out_of_service, mileage,
+                    last_maintenance_date
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                scooter.serial_number,
+                scooter.brand,
+                scooter.model,
+                float(scooter.top_speed),
+                scooter.battery_capacity,
+                scooter.soc,
+                scooter.target_range_soc[0],  # min
+                scooter.target_range_soc[1],  # max
+                scooter.location[0],          # latitude
+                scooter.location[1],          # longitude
+                int(scooter.out_of_service),
+                scooter.mileage,
+                scooter.last_maintenance_date,
+            ))
+            conn.commit()
+            conn.close()
+        except sqlite3.Error:
+            print("Error adding scooter to the database. Please check the input values.")
+            return
     
     @staticmethod
     def Add_user(user):
-        encrypt = Utility.load_key()
-        enc_username = encrypt.encrypt(user.username.encode('utf-8'))
-        hash_password = hashlib.sha256(user.password.encode('utf-8')).hexdigest()
-        enc_first_name = encrypt.encrypt(user.first_name.encode('utf-8'))
-        enc_last_name = encrypt.encrypt(user.last_name.encode('utf-8'))
-        conn = sqlite3.connect('users.db')
-        c = conn.cursor()
-        c.execute('''
-            INSERT OR REPLACE INTO users (role, username, password, first_name, last_name) VALUES (?, ?, ?, ?, ?)
-        ''', (
-            user.role,
-            enc_username,
-            hash_password,
-            enc_first_name,
-            enc_last_name,
-        ))
-        conn.commit()
-        conn.close()
-    
-    @staticmethod
-    def Validate_service_engineer(user):
-        user.username = Utility.validate_input("Enter username: ", custom_validator=Utility.is_valid_username)
-        user.password = Utility.validate_input("Enter password: ", custom_validator=Utility.is_valid_password)
-        user.first_name = Utility.validate_input("Enter first name: ", min_length=2, max_length=20)
-        user.last_name = Utility.validate_input("Enter last name: ", min_length=2, max_length=20)
-        return user
+        try:
+            encrypt = Utility.load_key()
+            enc_username = encrypt.encrypt(user.username.encode('utf-8'))
+            hash_password = hashlib.sha256(user.password.encode('utf-8')).hexdigest()
+            enc_first_name = encrypt.encrypt(user.first_name.encode('utf-8'))
+            enc_last_name = encrypt.encrypt(user.last_name.encode('utf-8'))
+            conn = sqlite3.connect('users.db')
+            c = conn.cursor()
+            c.execute('''
+                INSERT INTO users (role, username, password, first_name, last_name) VALUES (?, ?, ?, ?, ?)
+            ''', (
+                user.role,
+                enc_username,
+                hash_password,
+                enc_first_name,
+                enc_last_name,
+            ))
+            conn.commit()
+            conn.close()
+        except sqlite3.Error:
+            print("Error adding user to the database. Please check the input values.")
+            return
 
     @staticmethod
     def log_activity(username, activity, additional_info="", suspicious=False):
@@ -122,8 +127,8 @@ class Utility:
                     role=row['role'],
                     username=encrypt.decrypt(row['username']).decode('utf-8'),
                     password=row['password'],
-                    first_name=encrypt.decrypt(row['first_name']).decode('utf-8'),
-                    last_name=encrypt.decrypt(row['last_name']).decode('utf-8'),
+                    first_name=encrypt.decrypt(row['first_name']).decode('utf-8') if row['first_name'] else row['first_name'],
+                    last_name=encrypt.decrypt(row['last_name']).decode('utf-8') if row['last_name'] else row['last_name'],
                     registration_date=reg_date
                 )
         if check_username:
@@ -131,14 +136,75 @@ class Utility:
         return None
     
     @staticmethod
-    def update_password(password, row_id):
-        conn = sqlite3.connect('users.db')
+    def fetch_scooter_info(search_key):
+        conn = sqlite3.connect('scooters.db')
+        conn.row_factory = sqlite3.Row
         c = conn.cursor()
-        hash_password = hashlib.sha256(password.encode('utf-8')).hexdigest()
-        c.execute("UPDATE users SET password = ? WHERE rowid = ?", (hash_password, row_id))
-        conn.commit()
+        c.execute("SELECT rowid, * FROM scooters")
+        rows = c.fetchall()
         conn.close()
-        print("Password updated successfully.")
+
+        search_key_lower = search_key.lower()
+        best_score = -1
+        best_row = None
+
+        for row in rows:
+            fields_to_search = [
+                str(row['serial_number']),
+                str(row['brand']),
+                str(row['model']),
+                str(row['top_speed']),
+                str(row['battery_capacity']),
+                str(row['soc']),
+                str(row['mileage']),
+                str(row['last_maintenance_date']),
+                str(row['in_service_date']),
+            ]
+            # Score: count of fields containing the search key (higher is better)
+            score = sum(search_key_lower in str(field).lower() for field in fields_to_search)
+            if score > best_score:
+                best_score = score
+                best_row = row
+
+        if best_row and best_score > 0:
+            scooter = Scooter(
+                serial_number=best_row['serial_number'],
+                brand=best_row['brand'],
+                model=best_row['model'],
+                top_speed=best_row['top_speed'],
+                battery_capacity=best_row['battery_capacity'],
+                soc=best_row['soc'],
+                target_range_soc_min=best_row['target_range_soc_min'],
+                target_range_soc_max=best_row['target_range_soc_max'],
+                latitude=best_row['latitude'],
+                longitude=best_row['longitude'],
+                out_of_service=best_row['out_of_service'],
+                mileage=best_row['mileage'],
+                last_maintenance_date=best_row['last_maintenance_date'],
+                in_service_date=best_row['in_service_date']
+            )
+            return scooter, best_row['rowid']
+        else:
+            return None, None
+    
+    @staticmethod
+    def update_passwordDB(password, row_id):
+        try:
+            conn = sqlite3.connect('users.db')
+            c = conn.cursor()
+            hash_password = hashlib.sha256(password.encode('utf-8')).hexdigest()
+            c.execute("UPDATE users SET password = ? WHERE rowid = ?", (hash_password, row_id))
+            conn.commit()
+            conn.close()
+            print("Password updated successfully.")
+        except sqlite3.Error:
+            print("Error updating password in the database.")
+            return
+    
+    @staticmethod
+    def update_scooter_attributes(user: User, scooter: Scooter):
+        return True
+
     
 
     edit_permissions = {
@@ -209,65 +275,28 @@ class Utility:
         print("Restore complete.")
     
     @staticmethod
-    def is_valid_username(username):
-        if not Utility.fetch_userinfo(username, check_username=True):
-            return False  # Username exists
-        pattern = r"^[a-zA-Z_][a-zA-Z0-9_'.]{7,9}$"
-        return bool(re.fullmatch(pattern, username, re.IGNORECASE))
-    
-    @staticmethod
-    def is_valid_password(password):
-        # Length check
-        if not (12 <= len(password) <= 30):
-            return False
-
-        # Allowed characters
-        allowed_pattern = r"^[a-zA-Z0-9~!@#$%&_\-\+=`|\\\(\)\{\}\[\]:;'<>,\.?\/]+$"
-        if not re.fullmatch(allowed_pattern, password):
-            return False
-
-        # At least one lowercase, one uppercase, one digit, one special character
-        if not re.search(r"[a-z]", password):
-            return False
-        if not re.search(r"[A-Z]", password):
-            return False
-        if not re.search(r"\d", password):
-            return False
-        if not re.search(r"[~!@#$%&_\-\+=`|\\\(\)\{\}\[\]:;'<>,\.?\/]", password):
-            return False
-
-        return True
-    
-    @staticmethod
-    def validate_input(
-        prompt: str,
-        min_length: int = 1,
-        max_length: int = 255,
-        allow_null_byte: bool = False,
-        custom_validator=None
-    ):
-        while True:
-            value = input(prompt)
-            if not value:
-                print("Input cannot be empty.")
-                continue
-            if not allow_null_byte and '\x00' in value:
-                print("Input cannot contain null bytes.")
-                continue
-            if not (min_length <= len(value) <= max_length):
-                print(f"Input must be between {min_length} and {max_length} characters.")
-                continue
-            if custom_validator and not custom_validator(value):
-                print("Input failed custom validation.")
-                continue
-            return value
-
-    # Example usage:
-    # username = validate_input("Enter username: ", min_length=8, max_length=10, custom_validator=Utility.is_valid_username)
-    @staticmethod
     def print_userinfo(user: User):
+        print("=== User Information ===")
         print(f"Role: {user.role}")
         print(f"Username: {user.username}")
         print(f"First Name: {user.first_name}")
         print(f"Last Name: {user.last_name}")
         print(f"Registration Date: {user.registration_date.isoformat()}")
+    
+    @staticmethod
+    def print_scooterinfo(scooter: Scooter):
+        print("=== Scooter Information ===")
+        print(f"Serial Number: {scooter.serial_number}")
+        print(f"Brand: {scooter.brand}")
+        print(f"Model: {scooter.model}")
+        print(f"Top Speed: {scooter.top_speed}")
+        print(f"Battery Capacity: {scooter.battery_capacity}")
+        print(f"State of Charge (SOC): {scooter.soc}")
+        print(f"Target Range SOC Min: {scooter.target_range_soc_min}")
+        print(f"Target Range SOC Max: {scooter.target_range_soc_max}")
+        print(f"Latitude: {scooter.latitude}")
+        print(f"Longitude: {scooter.longitude}")
+        print(f"Out of Service: {'Yes' if scooter.out_of_service else 'No'}")
+        print(f"Mileage: {scooter.mileage}")
+        print(f"Last Maintenance Date: {scooter.last_maintenance_date}")
+        print(f"In Service Date: {scooter.in_service_date}")
