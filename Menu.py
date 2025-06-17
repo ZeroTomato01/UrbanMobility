@@ -87,9 +87,10 @@ class Menu:
             ("12", "Restore backup (with restore-code from SA)"),
             ("13", "Print logs"),
             ("14", "Add Traveller"),
-            ("15", "Add Scooter"),
-            ("16", "Delete Scooter"),
-            ("17", "Search/retrieve Traveller info + update"),
+            ("15", "Delete Traveller")
+            ("16", "Add Scooter"),
+            ("17", "Delete Scooter"),
+            ("18", "Search/retrieve Traveller info + update"),
             ("0", "Logout"),
         ]
         suspicious_count = 0
@@ -117,7 +118,7 @@ class Menu:
                 case "7":
                     SystemAdminFunctions.delete_other_account(user)
                 case "8":
-                    print("reset service engineer password")
+                    print("reset service engineer password (temp password)")
                 case "9":
                     SystemAdminFunctions.update_own_account(user)
                 case "10":
@@ -131,11 +132,13 @@ class Menu:
                 case "14":
                     print("add traveller")
                 case "15":
-                    SystemAdminFunctions.add_scooter(user)
+                    print("Delete traveller")
                 case "16":
-                    SystemAdminFunctions.delete_scooter(user)
+                    SystemAdminFunctions.add_scooter(user)
                 case "17":
-                    print("search retrieve traveller info + update")
+                    SystemAdminFunctions.delete_scooter(user)
+                case "18":
+                    print("search traveller info + update")
                 case _:
                     print("Invalid option. Please try again.")
                     suspicious_count += 1
