@@ -20,3 +20,6 @@ class SeedDB:
         InitDB.Init_travellerdb()
         InitDB.Init_logdb()
         InitDB.Init_SAdb()
+        InitDB.Init_dummyusers()
+        InitDB.Init_dummyscooters()
+        InitDB.Init_dummytravellers()

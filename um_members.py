@@ -2,6 +2,7 @@ from Utils import Utility
 from InitDB import InitDB
 from Menu import Menu
 from Validate import Validate
+from SeedDB import SeedDB
 
 
 def main():
