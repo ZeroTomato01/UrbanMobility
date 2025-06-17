@@ -87,7 +87,7 @@ class Menu:
             ("12", "Restore backup (with restore-code from SA)"),
             ("13", "Print logs"),
             ("14", "Add Traveller"),
-            ("15", "Delete Traveller")
+            ("15", "Delete Traveller"),
             ("16", "Add Scooter"),
             ("17", "Delete Scooter"),
             ("18", "Search/retrieve Traveller info + update"),
