@@ -1,8 +1,6 @@
 import hashlib
 from Models.User import User
-from Models.Scooter import Scooter
 from Utils import Utility
-from Validate import Validate
 from system_admin_functions import SystemAdminFunctions
 from super_admin_functions import SuperAdminFunctions
 from service_engineer_functions import ServiceEngineerFunctions
@@ -64,7 +62,7 @@ class Menu:
                 case "1":
                     ServiceEngineerFunctions.update_password(user)
                 case "2":
-                    ServiceEngineerFunctions.search_print_update_scooter(user)
+                    ServiceEngineerFunctions.search_print_update_scooterengineer(user)
                 case "3":
                     ServiceEngineerFunctions.print_profile(user)
                 case _:
@@ -89,11 +87,9 @@ class Menu:
             ("12", "Restore backup (with restore-code from SA)"),
             ("13", "Print logs"),
             ("14", "Add Traveller"),
-            ("15", "Update Traveller"),
-            ("16", "Add Scooter"),
-            ("17", "Update Scooter"),
-            ("18", "Delete Scooter"),
-            ("19", "Search/retrieve Traveller info"),
+            ("15", "Add Scooter"),
+            ("16", "Delete Scooter"),
+            ("17", "Search/retrieve Traveller info + update"),
             ("0", "Logout"),
         ]
         suspicious_count = 0
@@ -109,7 +105,7 @@ class Menu:
                 case "1":
                     ServiceEngineerFunctions.update_password(user)
                 case "2":
-                    ServiceEngineerFunctions.search_print_update_scooter(user)
+                    SystemAdminFunctions.search_print_update_scooteradmin(user)
                 case "3":
                     ServiceEngineerFunctions.print_profile(user)
                 case "4":
@@ -117,33 +113,29 @@ class Menu:
                 case "5":
                     SystemAdminFunctions.add_service_engineer(user)
                 case "6":
-                    SystemAdminFunctions.update_service_engineer_profile(user)
+                    print("update service engineer profile")
                 case "7":
                     SystemAdminFunctions.delete_other_account(user)
                 case "8":
-                    SystemAdminFunctions.reset_service_engineer_password(user)
+                    print("reset service engineer password")
                 case "9":
-                    SystemAdminFunctions.update_own_account(user)
+                    print("update own account")
                 case "10":
-                    SystemAdminFunctions.delete_own_account(user)
+                    print("delete own account")
                 case "11":
                     SystemAdminFunctions.create_backup(user)
                 case "12":
-                    SystemAdminFunctions.restore_backup(user)
+                    print("restore backup")
                 case "13":
                     SystemAdminFunctions.print_logs(user)
                 case "14":
-                    SystemAdminFunctions.add_traveller(user)
+                    print("add traveller")
                 case "15":
-                    SystemAdminFunctions.update_traveller(user)
-                case "16":
                     SystemAdminFunctions.add_scooter(user)
-                case "17":
-                    SystemAdminFunctions.update_scooter(user)
-                case "18":
+                case "16":
                     SystemAdminFunctions.delete_scooter(user)
-                case "19":
-                    SystemAdminFunctions.search_retrieve_traveller_info(user)
+                case "17":
+                    print("search retrieve traveller info + update")
                 case _:
                     print("Invalid option. Please try again.")
                     suspicious_count += 1
@@ -187,7 +179,7 @@ class Menu:
                     Utility.log_activity(user.username, "Logout succesful")
                     exit()
                 case "1":
-                    ServiceEngineerFunctions.search_print_update_scooter(user)
+                    SystemAdminFunctions.search_print_update_scooteradmin(user)
                 case "2":
                     SystemAdminFunctions.list_users_and_roles(user)
                 case "3":
@@ -219,7 +211,7 @@ class Menu:
                 case "16":
                     print("Reset System Administrator password (temp password) selected.")
                 case "17":
-                    print("Backup system selected.")
+                    SystemAdminFunctions.create_backup(user)
                 case "18":
                     print("Restore backup selected.")
                 case "19":

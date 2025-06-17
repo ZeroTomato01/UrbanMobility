@@ -21,7 +21,7 @@ class ServiceEngineerFunctions:
         Utility.print_userinfo(user)
 
     @staticmethod
-    def search_print_update_scooter(user: User):
+    def search_print_update_scooterengineer(user: User):
         print("Print scooter info selected.")
         while True:
             keyword = input("Enter scooter info to search: ").strip()
@@ -35,5 +35,5 @@ class ServiceEngineerFunctions:
             Utility.print_scooterinfo(scooter)
             edit = input("Edit scooter attributes? (Y/N)").lower()
             if edit == 'y':
-                Utility.update_scooter_attributes(user, scooter)
+                Utility.update_scooter_attributes_engineer(user, scooter)
             return

@@ -1,4 +1,5 @@
 import sqlite3
+import inspect
 from Models.Scooter import Scooter
 from Models.User import User
 from datetime import datetime, timedelta
@@ -62,6 +63,32 @@ class Validate:
         scooter.last_maintenance_date = Validate.validate_input("Enter new last maintenance date (YYYY-MM-DD): ", username=user.username, custom_validator=lambda d: Validate.is_valid_last_maintenance_date(d, scooter=scooter))
         return scooter
 
+    @staticmethod
+    def validate_updatescooter_admin(user: User, scooter: Scooter):
+        scooter.serial_number = Validate.validate_input("Enter serial number (unique 10-17 alphanumeric): ", username=user.username, custom_validator=Validate.is_valid_serialnumber)
+        scooter.brand = Validate.validate_input("Enter brand: (1-20)", username=user.username, min_length=1, max_length=20)
+        scooter.model = Validate.validate_input("Enter model: (1-20)", username=user.username, min_length=1, max_length=20)
+        scooter.top_speed = Validate.validate_input("Enter top speed (km/h): ", username=user.username, custom_validator=Validate.is_valid_topspeed)
+        scooter.battery_capacity = Validate.validate_input("Enter battery capacity (Wh): ", username=user.username, custom_validator=Validate.is_valid_battery_capacity)
+        scooter.soc = Validate.validate_input("Enter new SOC (0-100): ", username=user.username, custom_validator=Validate.is_valid_soc)
+        while True:
+            min_soc = Validate.validate_input("Enter new target range SOC min (0-100): ", username=user.username)
+            max_soc = Validate.validate_input("Enter new target range SOC max (0-100): ", username=user.username)
+            if Validate.is_valid_target_soc(min_soc, max_soc):
+                scooter.target_range_soc = (min_soc, max_soc)
+                break
+            print("Invalid target range SOC. Ensure 0 <= min < max <= 100.")
+        while True:
+            latitude = Validate.validate_input("Enter new latitude (51.85000 - 51.99000, 5 decimals): ", username=user.username)
+            longitude = Validate.validate_input("Enter new longitude (4.40000 - 4.60000, 5 decimals): ", username=user.username)
+            if Validate.is_valid_location(latitude, longitude):
+                scooter.location = (latitude, longitude)
+                break
+            print("Invalid location. Ensure latitude is between 51.85000 and 51.99000, and longitude is between 4.40000 and 4.60000, both with 5 decimal places.")
+        scooter.out_of_service = Validate.validate_input("Is the scooter out of service? (1 for true/0 for false): ", username=user.username, custom_validator=Validate.is_valid_out_of_service)
+        scooter.mileage = Validate.validate_input("Enter new mileage: ", username=user.username, custom_validator=Validate.is_valid_mileage)
+        scooter.last_maintenance_date = Validate.validate_input("Enter new last maintenance date (YYYY-MM-DD): ", username=user.username, custom_validator=lambda d: Validate.is_valid_last_maintenance_date(d, scooter=scooter))
+        return scooter
     
     @staticmethod
     def is_valid_username(username):
@@ -199,21 +226,38 @@ class Validate:
         allow_null_byte: bool = False,
         custom_validator=None,
         username: str = "",
-        activity: str = "Input validation failed"
+        activity: str = "Input validation failed",
+        additional_info: str = ""
     ):
+        from Utils import Utility
+        suspicious_count = 0
+
+        validator_name = custom_validator.__name__ if custom_validator else ""
+        caller_name = inspect.stack()[1].function
+        if not additional_info and validator_name:
+            additional_info = f"{caller_name} -> {validator_name}"
+            
         while True:
             value = input(prompt).strip()
             if not value:
                 print("Input cannot be empty.")
+                suspicious_count += 1
+                Utility.log_activity(username, activity, additional_info, suspicious_count)
                 continue
             if not allow_null_byte and '\x00' in value:
                 print("Input cannot contain null bytes.")
+                suspicious_count += 1
+                Utility.log_activity(username, activity, additional_info, suspicious_count)
                 continue
             if not (min_length <= len(value) <= max_length):
                 print(f"Input must be between {min_length} and {max_length} characters.")
+                suspicious_count += 1
+                Utility.log_activity(username, activity, additional_info, suspicious_count)
                 continue
             if custom_validator and not custom_validator(value):
                 print("Input failed validation.")
+                suspicious_count += 1
+                Utility.log_activity(username, activity, additional_info, suspicious_count)
                 continue
             return value
 

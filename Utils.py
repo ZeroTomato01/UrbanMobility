@@ -88,21 +88,23 @@ class Utility:
         enc_username = encrypt.encrypt(username.encode('utf-8'))
         enc_activity = encrypt.encrypt(activity.encode('utf-8'))
         enc_additional = encrypt.encrypt(additional_info.encode('utf-8'))
-
-        conn = sqlite3.connect('logs.db')
-        c = conn.cursor()
-        c.execute('''
-            INSERT INTO logs (username, activity, additional_info, suspicious, unread)
-            VALUES (?, ?, ?, ?, ?)
-        ''', (
-            enc_username,
-            enc_activity,
-            enc_additional,
-            1 if suspicious else 0, # 1 for true, 0 for false
-            1  # unread by default
-        ))
-        conn.commit()
-        conn.close()
+        try:
+            conn = sqlite3.connect('logs.db')
+            c = conn.cursor()
+            c.execute('''
+                INSERT INTO logs (username, activity, additional_info, suspicious, unread)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (
+                enc_username,
+                enc_activity,
+                enc_additional,
+                1 if suspicious else 0, # 1 for true, 0 for false
+                1  # unread by default
+            ))
+            conn.commit()
+            conn.close()
+        except sqlite3.Error as e:
+            print(f"log bricked woops: {e}")
     
     @staticmethod
     def print_logs(user: User):
@@ -114,13 +116,13 @@ class Utility:
         c.execute("SELECT * FROM logs ORDER BY id DESC")
         logs = c.fetchall()
 
-        print("No. | Date       | Time     | Username      | Activity Description         | Additional Info                                 | Suspicious")
-        print("-" * 125)
+        print("No. | Date       | Time     | Username      | Activity Description         | Additional Info                               | Suspicious")
+        print("-" * 135)
         for log in logs:
             username = encrypt.decrypt(log['username']).decode('utf-8')
             activity = encrypt.decrypt(log['activity']).decode('utf-8')
             additional_info = encrypt.decrypt(log['additional_info']).decode('utf-8') if log['additional_info'] else ""
-            print(f"{log['id']:>3} | {log['date']} | {log['time']} | {username:<13} | {activity:<20} | {additional_info:<60} | {'Yes' if log['suspicious'] else 'No':<4}")
+            print(f"{log['id']:>3} | {log['date']} | {log['time']} | {username:<13} | {activity:<26} | {additional_info:<58} | {'Yes' if log['suspicious'] else 'No':<3}")
 
         # Set all unread logs to 0
         c.execute("UPDATE logs SET unread = 0 WHERE unread != 0")
@@ -279,64 +281,116 @@ class Utility:
             return
     
     @staticmethod
-    def update_scooter_attributes(user: User, scooter: Scooter):
-        if user.role == "Service Engineer":
-            scooter = Validate.validate_updatescooter_engineer(user, scooter)
-            # Update the scooter in the database
-            try:
-                conn = sqlite3.connect('scooters.db')
-                c = conn.cursor()
-                c.execute('''
-                    UPDATE scooters SET
-                        soc = ?,
-                        target_range_soc_min = ?,
-                        target_range_soc_max = ?,
-                        latitude = ?,
-                        longitude = ?,
-                        out_of_service = ?,
-                        mileage = ?,
-                        last_maintenance_date = ?
-                    WHERE serial_number = ?
-                ''', (
-                    scooter.soc,
-                    scooter.target_range_soc[0],
-                    scooter.target_range_soc[1],
-                    scooter.location[0],
-                    scooter.location[1],
-                    int(scooter.out_of_service),
-                    scooter.mileage,
-                    scooter.last_maintenance_date,
-                    scooter.serial_number
-                ))
-                conn.commit()
-                conn.close()
-                print("Scooter attributes updated successfully.")
-                Utility.log_activity(user.username, "Update scooter to DB", additional_info="Update scooter to DB succesful", suspicious_count = 0)
-            except sqlite3.Error as e:
-                print("Error updating scooter in the database:", e)
-                Utility.log_activity(user.username, "Update scooter to DB", additional_info=f"Update scooter to DB failed: {e}", suspicious_count = 3)
+    def update_scooter_attributes_engineer(user: User, scooter: Scooter):
+        scooter = Validate.validate_updatescooter_engineer(user, scooter)
+        # Update the scooter in the database
+        try:
+            conn = sqlite3.connect('scooters.db')
+            c = conn.cursor()
+            c.execute('''
+                UPDATE scooters SET
+                    soc = ?,
+                    target_range_soc_min = ?,
+                    target_range_soc_max = ?,
+                    latitude = ?,
+                    longitude = ?,
+                    out_of_service = ?,
+                    mileage = ?,
+                    last_maintenance_date = ?
+                WHERE serial_number = ?
+            ''', (
+                scooter.soc,
+                scooter.target_range_soc[0],
+                scooter.target_range_soc[1],
+                scooter.location[0],
+                scooter.location[1],
+                int(scooter.out_of_service),
+                scooter.mileage,
+                scooter.last_maintenance_date,
+                scooter.serial_number
+            ))
+            conn.commit()
+            conn.close()
+            print("Scooter attributes updated successfully.")
+            Utility.log_activity(user.username, "Update scooter to DB", additional_info="Update scooter to DB succesful", suspicious_count = 0)
+        except sqlite3.Error as e:
+            print("Error updating scooter in the database:", e)
+            Utility.log_activity(user.username, "Update scooter to DB", additional_info=f"Update scooter to DB failed: {e}", suspicious_count = 3)
 
+    @staticmethod
+    def update_scooter_attributes_admin(user: User, scooter: Scooter):
+        scooter = Validate.validate_updatescooter_admin(user, scooter)
+        # Update the scooter in the database
+        try:
+            conn = sqlite3.connect('scooters.db')
+            c = conn.cursor()
+            c.execute('''
+                UPDATE scooters SET
+                    serial_number = ?,
+                    brand = ?,
+                    model = ?,
+                    top_speed = ?,
+                    battery_capacity = ?,
+                    soc = ?,
+                    target_range_soc_min = ?,
+                    target_range_soc_max = ?,
+                    latitude = ?,
+                    longitude = ?,
+                    out_of_service = ?,
+                    mileage = ?,
+                    last_maintenance_date = ?
+                WHERE serial_number = ?
+            ''', (
+                scooter.serial_number,
+                scooter.brand,
+                scooter.model,
+                scooter.top_speed,
+                scooter.battery_capacity,
+                scooter.soc,
+                scooter.target_range_soc[0],
+                scooter.target_range_soc[1],
+                scooter.location[0],
+                scooter.location[1],
+                int(scooter.out_of_service),
+                scooter.mileage,
+                scooter.last_maintenance_date,
+                scooter.serial_number
+            ))
+            conn.commit()
+            conn.close()
+            print("Scooter attributes updated successfully.")
+            Utility.log_activity(user.username, "Update scooter to DB", additional_info="Update scooter to DB succesful", suspicious_count = 0)
+        except sqlite3.Error as e:
+            print("Error updating scooter in the database:", e)
+            Utility.log_activity(user.username, "Update scooter to DB", additional_info=f"Update scooter to DB failed: {e}", suspicious_count = 3)
     
     
     @staticmethod
-    def create_backup():
-        db_files = ['users.db', 'scooters.db', 'traveller.db']
-        backup_dir = 'backups'
-        os.makedirs(backup_dir, exist_ok=True)
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        backup_filename = f'backup_{timestamp}.zip'
-        backup_path = os.path.join(backup_dir, backup_filename)
+    def create_backup(user: User):
+        try:
+            db_files = ['users.db', 'scooters.db', 'traveller.db']
+            backup_dir = 'backups'
+            os.makedirs(backup_dir, exist_ok=True)
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            backup_filename = f'backup_{timestamp}.zip'
+            backup_path = os.path.join(backup_dir, backup_filename)
 
-        with zipfile.ZipFile(backup_path, 'w') as backup_zip:
-            for db_file in db_files:
-                if os.path.exists(db_file):
-                    backup_zip.write(db_file)
-                else:
-                    print(f"Warning: {db_file} not found and will not be included in the backup.")
+            with zipfile.ZipFile(backup_path, 'w') as backup_zip:
+                for db_file in db_files:
+                    if os.path.exists(db_file):
+                        backup_zip.write(db_file)
+                    else:
+                        print(f"Warning: {db_file} not found and will not be included in the backup.")
 
-        print(f"Backup created: {backup_path}")
-        return backup_path
-    
+            print(f"Backup created: {backup_path}")
+            Utility.log_activity(user.username, "Backup of DB created", additional_info="Backup of DB creation successful", suspicious_count = 0)
+            return backup_path
+        except Exception as e:
+            print(f"something went wrong backing up: {e}")
+            Utility.log_activity(user.username, "Backup of DB created", additional_info="Backup of DB failed", suspicious_count = 3)
+
+
+
     @staticmethod
     def restore_backup(backup_zip_path):
         """
@@ -383,12 +437,13 @@ class Utility:
         if target_rowid is not None:
             c.execute("DELETE FROM users WHERE rowid = ?", (target_rowid,))
             conn.commit()
+            conn.close()
             print(f"User '{delete_user.username}' deleted successfully.")
             Utility.log_activity(user.username, "Delete user from DB", additional_info=f"Deleted user: {delete_user.username} from DB", suspicious_count = 0)
         else:
             print(f"User '{delete_user.username}' not found.")
             Utility.log_activity(user.username, "Delete user from DB", additional_info=f"Failed to delete user: {delete_user.username} from DB", suspicious_count = 3)
-        conn.close()
+        
     
     @staticmethod
     def print_userinfo(user: User):

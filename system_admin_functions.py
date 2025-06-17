@@ -30,14 +30,6 @@ class SystemAdminFunctions:
     # ("19", "Search/retrieve Traveller info"),
     # ("0", "Logout"),
 
-
-    @staticmethod
-    def update_password(user: User):
-        print("Update own password selected.")
-        row_id = Utility.fetch_userinfo(user.username, row_id=True)
-        new_password = Validate.validate_input("Enter new password: ",username=user.username, custom_validator=Validate.is_valid_password)
-        Utility.update_passwordDB(user, new_password, row_id)
-
     @staticmethod
     def add_service_engineer(user: User):
         print("Add Service Engineer selected.")
@@ -57,10 +49,6 @@ class SystemAdminFunctions:
         for row in rows:
             decrypted_username = encrypt.decrypt(row['username']).decode('utf-8')
             print(f"- {decrypted_username}: {row['role']}")
-
-    @staticmethod
-    def update_service_engineer_profile(user):
-        return
 
     @staticmethod
     def delete_other_account(user: User):
@@ -89,54 +77,41 @@ class SystemAdminFunctions:
             return
 
     @staticmethod
-    def reset_service_engineer_password(user):
-        return
-
-    @staticmethod
-    def update_own_account(user):
-        return
-
-    @staticmethod
-    def delete_own_account(user):
-        return
-
-    @staticmethod
-    def create_backup(user):
-        return
-
-    @staticmethod
-    def restore_backup(user):
-        return
-
-    @staticmethod
     def print_logs(user: User):
         print("Print logs selected.")
         Utility.print_logs(user)
 
     @staticmethod
-    def add_traveller(user):
-        return
-
-    @staticmethod
-    def update_traveller(user):
-        return
-
-    @staticmethod
     def add_scooter(user: User):
         print("Add Scooter selected.")
         new_scooter = Scooter()
-        new_scooter = Validate.Validate_addscooter(user, new_scooter, add=True)
+        new_scooter = Validate.Validate_addscooter(user, new_scooter)
         Utility.Add_scooter(user, new_scooter)
+    
+    @staticmethod
+    def search_print_update_scooteradmin(user: User):
+        print("Print scooter info selected.")
+        while True:
+            keyword = input("Enter scooter info to search: ").strip()
+            scooter = Utility.fetch_scooter_info(keyword)
+            if not scooter:
+                print("No scooter found with that info.")
+                end_search = input("end search? (Y/N)").lower()
+                if end_search == 'y':
+                    return
+                continue
+            Utility.print_scooterinfo(scooter)
+            edit = input("Edit scooter attributes? (Y/N)").lower()
+            if edit == 'y':
+                Utility.update_scooter_attributes_admin(user, scooter)
+            return
+    
+    @staticmethod
+    def create_backup(user: User):
+        print("create backup")
+        Utility.create_backup(user)
 
     @staticmethod
-    def update_scooter(user):
+    def delete_scooter(user: User):
         return
 
-    @staticmethod
-    def delete_scooter(user):
-        return
-
-    @staticmethod
-    def search_retrieve_traveller_info(user):
-        return
-        
