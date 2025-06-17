@@ -63,8 +63,30 @@ class SystemAdminFunctions:
         return
 
     @staticmethod
-    def delete_service_engineer(user):
-        return
+    def delete_other_account(user: User):
+        if user.role == "System Administrator":
+            allowed_deletes = ["Service Engineer"]
+        if user.role == "Super Administrator":
+            allowed_deletes = ["Service Engineer", "System Administrator"]
+        print("Delete account of other user selected")
+        while True:
+            keyword = input("Enter user info to search: ").strip()
+            delete_user = Utility.fetch_searchuser(keyword)
+            if not delete_user:
+                print("No user found with that info.")
+                end_search = input("end search? (Y/N)").lower()
+                if end_search == 'y':
+                    return
+                continue
+            if not delete_user.role in allowed_deletes:
+                print("not allowed to delete this user")
+                Utility.log_activity(user.username, "Delete user from DB", "Not allowed to delete this user", 3)
+                continue
+            Utility.print_userinfo(delete_user)
+            delete = input("Delete user? (Y/N)").lower()
+            if delete == 'y':
+                Utility.delete_user(user, delete_user)
+            return
 
     @staticmethod
     def reset_service_engineer_password(user):

@@ -221,6 +221,48 @@ class Utility:
             return None
     
     @staticmethod
+    def fetch_searchuser(search_key):
+        encrypt = Utility.load_key()
+        conn = sqlite3.connect('users.db')
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute("SELECT rowid, * FROM users")
+        rows = c.fetchall()
+        conn.close()
+
+        search_key_lower = search_key.lower()
+        best_score = -1
+        best_row = None
+
+        for row in rows:
+            fields_to_search = [
+                str(row['role']),
+                str(encrypt.decrypt(row['username']).decode('utf-8')),
+                str(encrypt.decrypt(row['first_name']).decode('utf-8') if row['first_name'] else row['first_name']),
+                str(encrypt.decrypt(row['last_name']).decode('utf-8') if row['last_name'] else row['last_name']),
+                str(row['registration_date']),
+            ]
+            # Score: count of fields containing the search key (higher is better)
+            score = sum(search_key_lower in str(field).lower() for field in fields_to_search)
+            if score > best_score:
+                best_score = score
+                best_row = row
+
+        if best_row and best_score > 0:
+            reg_date = datetime.strptime(best_row['registration_date'], "%Y-%m-%d").date()
+            user = User(
+                role=best_row['role'],
+                username=encrypt.decrypt(best_row['username']).decode('utf-8') if best_row['username'] else "",
+                password=best_row['password'] if best_row['password'] else "",
+                first_name=encrypt.decrypt(best_row['first_name']).decode('utf-8') if best_row['first_name'] else "",
+                last_name=encrypt.decrypt(best_row['last_name']).decode('utf-8') if best_row['last_name'] else "",
+                registration_date=reg_date
+            )
+            return user
+        else:
+            return None
+    
+    @staticmethod
     def update_passwordDB(user: User, password, row_id):
         try:
             conn = sqlite3.connect('users.db')
@@ -320,6 +362,33 @@ class Utility:
         # Clean up temporary directory
         shutil.rmtree(temp_dir)
         print("Restore complete.")
+
+    @staticmethod
+    def delete_user(user: User, delete_user: User):
+        encrypt = Utility.load_key()
+
+        conn = sqlite3.connect('users.db')
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute("SELECT rowid, username FROM users")
+        rows = c.fetchall()
+
+        target_rowid = None
+        for row in rows:
+            decrypted_username = encrypt.decrypt(row['username']).decode('utf-8')
+            if decrypted_username == delete_user.username:
+                target_rowid = row['rowid']
+                break
+
+        if target_rowid is not None:
+            c.execute("DELETE FROM users WHERE rowid = ?", (target_rowid,))
+            conn.commit()
+            print(f"User '{delete_user.username}' deleted successfully.")
+            Utility.log_activity(user.username, "Delete user from DB", additional_info=f"Deleted user: {delete_user.username} from DB", suspicious_count = 0)
+        else:
+            print(f"User '{delete_user.username}' not found.")
+            Utility.log_activity(user.username, "Delete user from DB", additional_info=f"Failed to delete user: {delete_user.username} from DB", suspicious_count = 3)
+        conn.close()
     
     @staticmethod
     def print_userinfo(user: User):

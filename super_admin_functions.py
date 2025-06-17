@@ -40,3 +40,4 @@ class SuperAdminFunctions:
         new_user = User(role="System Administrator")
         new_user = Validate.Validate_user(user, new_user)
         Utility.Add_user(user, new_user)
+

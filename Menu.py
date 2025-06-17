@@ -119,7 +119,7 @@ class Menu:
                 case "6":
                     SystemAdminFunctions.update_service_engineer_profile(user)
                 case "7":
-                    SystemAdminFunctions.delete_service_engineer(user)
+                    SystemAdminFunctions.delete_other_account(user)
                 case "8":
                     SystemAdminFunctions.reset_service_engineer_password(user)
                 case "9":
@@ -156,7 +156,7 @@ class Menu:
             ("2", "List users and roles"),
             ("3", "Add Service Engineer"),
             ("4", "Update Service Engineer profile"),
-            ("5", "Delete Service Engineer"),
+            ("5", "Delete other user (Engineer or sys admin)"),
             ("6", "Reset Service Engineer password (temp password)"),
             ("7", "View logs"),
             ("8", "Add Traveller"),
@@ -167,12 +167,11 @@ class Menu:
             ("13", "Search/retrieve Traveller info"),
             ("14", "Add System Administrator"),
             ("15", "Update System Administrator profile"),
-            ("16", "Delete System Administrator"),
-            ("17", "Reset System Administrator password (temp password)"),
-            ("18", "Backup system"),
-            ("19", "Restore backup"),
-            ("20", "Generate restore-code"),
-            ("21", "Revoke restore-code"),
+            ("16", "Reset System Administrator password (temp password)"),
+            ("17", "Backup system"),
+            ("18", "Restore backup"),
+            ("19", "Generate restore-code"),
+            ("20", "Revoke restore-code"),
             ("0", "Logout"),
         ]
 
@@ -196,7 +195,7 @@ class Menu:
                 case "4":
                     print("Update Service Engineer profile selected.")
                 case "5":
-                    print("Delete Service Engineer selected.")
+                    SystemAdminFunctions.delete_other_account(user)
                 case "6":
                     print("Reset Service Engineer password (temp password) selected.")
                 case "7":
@@ -218,16 +217,14 @@ class Menu:
                 case "15":
                     print("Update System Administrator profile selected.")
                 case "16":
-                    print("Delete System Administrator selected.")
-                case "17":
                     print("Reset System Administrator password (temp password) selected.")
-                case "18":
+                case "17":
                     print("Backup system selected.")
-                case "19":
+                case "18":
                     print("Restore backup selected.")
-                case "20":
+                case "19":
                     print("Generate restore-code selected.")
-                case "21":
+                case "20":
                     print("Revoke restore-code selected.")
                 case _:
                     print("Invalid option. Please try again.")
