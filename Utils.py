@@ -76,10 +76,7 @@ class Utility:
             return
 
     @staticmethod
-    def log_activity(username, activity, additional_info="", suspicious_count=0):
-        suspicious=False
-        if suspicious_count > 1:
-            suspicious = True
+    def log_activity(username, activity, additional_info="", suspicious=False):
         encrypt = Utility.load_key()
         enc_username = encrypt.encrypt(username.encode('utf-8'))
         enc_activity = encrypt.encrypt(activity.encode('utf-8'))
@@ -88,7 +85,7 @@ class Utility:
         conn = sqlite3.connect('logs.db')
         c = conn.cursor()
         c.execute('''
-            INSERT INTO logs (username, activity, additional_info, suspicious, unread)
+            INSERT INTO logs (date, time, username, activity, additional_info, suspicious, unread)
             VALUES (?, ?, ?, ?, ?)
         ''', (
             enc_username,

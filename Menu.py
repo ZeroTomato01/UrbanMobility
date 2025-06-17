@@ -3,6 +3,9 @@ from Models.User import User
 from Models.Scooter import Scooter
 from Utils import Utility
 from Validate import Validate
+from system_admin_functions import SystemAdminFunctions
+from super_admin_functions import SuperAdminFunctions
+
 
 class Menu:
     def __init__(self):
@@ -68,22 +71,26 @@ class Menu:
         menu_options = [
             ("1", "Update own password"),
             ("2", "Search/retrieve scooter + update"),
-            ("3", "List users and roles"),
-            ("4", "Add Service Engineer"),
-            ("5", "Update Service Engineer profile"),
-            ("6", "Delete Service Engineer"),
-            ("7", "Reset Service Engineer password (temp password)"),
-            ("8", "update own account"),
-            ("9", "delete own account"),
-            ("10", "Create backup"),
-            ("11", "Restore backup (with restore-code from SA)"),
-            ("12", "Print logs"),
-            ("13", "Add Traveller"),
-            ("14", "Update Traveller"),
-            ("15", "Add Scooter"),
-            ("16", "Update Scooter"),
-            ("17", "Delete Scooter"),
-            ("18", "Search/retrieve Traveller info"),
+            ("3", "Print profile info"),
+            #("2", "Update scooter attributes"),
+            #missing 3. print profile info from service_engineer ?
+            #("3", "Search/retrieve scooter info"),
+            ("4", "List users and roles"),
+            ("5", "Add Service Engineer"),
+            ("6", "Update Service Engineer profile"),
+            ("7", "Delete Service Engineer"),
+            ("8", "Reset Service Engineer password (temp password)"),
+            ("9", "update own account"),
+            ("10", "delete own account"),
+            ("11", "Create backup"),
+            ("12", "Restore backup (with restore-code from SA)"),
+            ("13", "Print logs"),
+            ("14", "Add Traveller"),
+            ("15", "Update Traveller"),
+            ("16", "Add Scooter"),
+            ("17", "Update Scooter"),
+            ("18", "Delete Scooter"),
+            ("19", "Search/retrieve Traveller info"),
             ("0", "Logout"),
         ]
         while True:
@@ -97,45 +104,84 @@ class Menu:
                     exit()
                 case "1":
                     # log update password event
-                    update_password(user)
+                    update_password(user) #get from service_engineer
+                    Utility.log_activity(user.username, "Update own password", "" , False)
                 case "2":
-                    # log search/retrieve scooter info event + update
-                    search_print_update_scooter(user)
+                    print("Search/retrieve scooter + update selected.")
+                    search_print_update_scooter(user) #get from service_engineer
+                    Utility.log_activity(user.username, "Search/retrieve scooter + update", "" , False)
                 case "3":
-                    print("List users and roles selected.")
+                    print("Print profile info")    
+                    print_profile(user) #get from service_engineer
+                    Utility.log_activity(user.username, "Print profile info", "" , False)
                 case "4":
-                    # log add service engineer event
-                    add_service_engineer()
+                    print("List users and roles selected.")
+                    SystemAdminFunctions.list_users_and_roles(user)
+                    Utility.log_activity(user.username, "List users and roles", "" , False)
                 case "5":
-                    print("Update Service Engineer profile selected.")
+                    # log add service engineer event
+                    SystemAdminFunctions.add_service_engineer()
+                    Utility.log_activity(user.username, "Add Service Engineer", "" , False)
                 case "6":
-                    print("Delete Service Engineer selected.")
+                    print("Update Service Engineer profile selected.")
+                    SystemAdminFunctions.update_service_engineer_profile(user)
+                    Utility.log_activity(user.username, "Update Service Engineer profile", "" , False)
                 case "7":
-                    print("Reset Service Engineer password (temp password) selected.")
+                    print("Delete Service Engineer selected.")
+                    SystemAdminFunctions.delete_service_engineer(user)
+                    Utility.log_activity(user.username, "Delete Service Engineer", "" , False)
                 case "8":
-                    print("Update own account selected.")
+                    print("Reset Service Engineer password (temp password) selected.")
+                    SystemAdminFunctions.reset_service_engineer_password(user)
+                    Utility.log_activity(user.username, "Reset Service Engineer password (temp password)", "" , False)
                 case "9":
-                    print("Delete own account selected.")
+                    print("Update own account selected.")
+                    SystemAdminFunctions.update_own_account(user)
+                    Utility.log_activity(user.username, "update own account", "" , False)
                 case "10":
-                    print("Create backup selected.")
+                    print("Delete own account selected.")
+                    SystemAdminFunctions.delete_own_account(user)
+                    Utility.log_activity(user.username, "delete own account", "" , False)
                 case "11":
-                    print("Restore backup (with restore-code from SA) selected.")
+                    print("Create backup selected.")
+                    SystemAdminFunctions.create_backup(user)
+                    Utility.log_activity(user.username, "Create backup", "" , False)
                 case "12":
-                    print("Print logs selected.")
+                    print("Restore backup (with restore-code from SA) selected.")
+                    SystemAdminFunctions.restore_backup(user)
+                    Utility.log_activity(user.username, "Restore backup (with restore-code from SA)", "" , False)
                 case "13":
-                    print("Add Traveller selected.")
+                    print("Print logs selected.")
+                    SystemAdminFunctions.print_logs(user)
+                    Utility.log_activity(user.username, "Print logs", "" , False)
                 case "14":
-                    print("Update Traveller selected.")
+                    print("Add Traveller selected.")
+                    SystemAdminFunctions.add_traveller(user)
+                    Utility.log_activity(user.username, "Add Traveller", "" , False)
                 case "15":
-                    add_scooter()
+                    print("Update Traveller selected.")
+                    SystemAdminFunctions.update_traveller(user)
+                    Utility.log_activity(user.username, "Update Traveller", "" , False)
                 case "16":
-                    print("Update Scooter selected.")
+                    print("Add Scooter selected.")
+                    add_scooter()
+                    SystemAdminFunctions.add_scooter(user)
+                    Utility.log_activity(user.username, "Add Scooter", "" , False)
                 case "17":
-                    print("Delete Scooter selected.")
+                    print("Update Scooter selected.")
+                    SystemAdminFunctions.update_scooter(user)
+                    Utility.log_activity(user.username, "Update Scooter", "" , False)
                 case "18":
+                    print("Delete Scooter selected.")
+                    SystemAdminFunctions.delete_scooter(user)
+                    Utility.log_activity(user.username, "Delete Scooter", "" , False)
+                case "19":
                     print("Search/retrieve Traveller info selected.")
+                    SystemAdminFunctions.search_retrieve_traveller_info(user)
+                    Utility.log_activity(user.username, "Search/retrieve Traveller info", "" , False)
                 case _:
                     print("Invalid option. Please try again.")
+                    Utility.log_activity(user.username, "User entered something invalid: ${_}", "" , False)
 
     @staticmethod
     def super_admin_menu(user: User):
@@ -180,11 +226,11 @@ class Menu:
                     print("Update scooter attributes selected.")
                 case "2":
                     print("Search/retrieve scooter info selected.")
+                    search_print_update_scooter(user)
                 case "3":
                     print("List users and roles selected.")
                 case "4":
-                    # log the add service engineer event
-                    add_service_engineer()
+                    SystemAdminFunctions.add_service_engineer()
                 case "5":
                     print("Update Service Engineer profile selected.")
                 case "6":
@@ -209,8 +255,8 @@ class Menu:
                 case "15":
                     print("Search/retrieve Traveller info selected.")
                 case "16":
-                    # log the add system administrator event
-                    add_system_admin()
+                    print("Add System Administrator selected.")
+                    SuperAdminFunctions.add_system_admin()
                 case "17":
                     print("Update System Administrator profile selected.")
                 case "18":
@@ -258,19 +304,7 @@ def search_print_update_scooter(user: User):
             Utility.update_scooter_attributes(user, scooter)
         return
 
-@staticmethod
-def add_service_engineer():
-    print("Add Service Engineer selected.")
-    new_user = User(role="Service Engineer")
-    new_user = Validate.Validate_user(new_user)
-    Utility.Add_user(new_user)
 
-@staticmethod
-def add_system_admin():
-    print("Add System Administrator selected.")
-    new_user = User(role="System Administrator")
-    new_user = Validate.Validate_user(new_user)
-    Utility.Add_user(new_user)
 
 @staticmethod
 def add_scooter():
