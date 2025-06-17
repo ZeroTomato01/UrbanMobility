@@ -16,17 +16,14 @@ class InitDB:
                 first_name TEXT NOT NULL, 
                 last_name TEXT NOT NULL,
                 birthday TEXT NOT NULL,
-                gender TEXT CHECK(gender IN ('male', 'female')) NOT NULL,
+                gender TEXT NOT NULL,
                 street_name TEXT NOT NULL,
                 house_number TEXT NOT NULL,
-                zip_code TEXT CHECK(zip_code GLOB '????[A-Z][A-Z]') NOT NULL,
+                zip_code TEXT NOT NULL,
                 city TEXT NOT NULL,
                 email_address TEXT NOT NULL,
-                mobile_phone TEXT CHECK(mobile_phone GLOB '+31-6-????????') NOT NULL,
-                driving_license_number TEXT CHECK(
-                    driving_license_number GLOB '[A-Z][A-Z]???????' OR
-                    driving_license_number GLOB '[A-Z]????????'
-                ) NOT NULL,
+                mobile_phone TEXT NOT NULL,
+                driving_license_number TEXT NOT NULL,
                 registration_date TEXT DEFAULT (date('now'))
             )
         ''')
