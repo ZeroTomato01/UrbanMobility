@@ -76,7 +76,10 @@ class Utility:
             return
 
     @staticmethod
-    def log_activity(username, activity, additional_info="", suspicious=False):
+    def log_activity(username, activity, additional_info="", suspicious_count = 0):
+        suspicious = False
+        if suspicious_count > 1:
+            suspicious = True
         encrypt = Utility.load_key()
         enc_username = encrypt.encrypt(username.encode('utf-8'))
         enc_activity = encrypt.encrypt(activity.encode('utf-8'))
