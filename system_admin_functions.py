@@ -113,5 +113,19 @@ class SystemAdminFunctions:
 
     @staticmethod
     def delete_scooter(user: User):
-        return
+        print("Delete scooter selected.")
+        while True:
+            keyword = input("Enter scooter info to search: ").strip()
+            scooter = Utility.fetch_scooter_info(keyword)
+            if not scooter:
+                print("No scooter found with that info.")
+                end_search = input("end search? (Y/N)").lower()
+                if end_search == 'y':
+                    return
+                continue
+            Utility.print_scooterinfo(scooter)
+            edit = input("Delete scooter? (Y/N)").lower()
+            if edit == 'y':
+                Utility.delete_scooterfromDB(user, scooter)
+            return
 

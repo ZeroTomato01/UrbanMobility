@@ -443,7 +443,26 @@ class Utility:
         else:
             print(f"User '{delete_user.username}' not found.")
             Utility.log_activity(user.username, "Delete user from DB", additional_info=f"Failed to delete user: {delete_user.username} from DB", suspicious_count = 3)
-        
+    
+    @staticmethod
+    def delete_scooterfromDB(user: User, scooter: Scooter):
+        conn = sqlite3.connect('scooters.db')
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        # Find the scooter by serial_number (which should be unique)
+        c.execute("SELECT rowid FROM scooters WHERE serial_number = ?", (scooter.serial_number,))
+        row = c.fetchone()
+
+        if row is not None:
+            c.execute("DELETE FROM scooters WHERE rowid = ?", (row['rowid'],))
+            conn.commit()
+            conn.close()
+            print(f"Scooter '{scooter.serial_number}' deleted successfully.")
+            Utility.log_activity(user.username, "Delete scooter from DB", additional_info=f"Deleted scooter: {scooter.serial_number} from DB", suspicious_count=0)
+        else:
+            conn.close()
+            print(f"Scooter '{scooter.serial_number}' not found.")
+            Utility.log_activity(user.username, "Delete scooter from DB", additional_info=f"Failed to delete scooter: {scooter.serial_number} from DB", suspicious_count=3)
     
     @staticmethod
     def print_userinfo(user: User):
