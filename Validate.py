@@ -6,60 +6,60 @@ import re
 
 class Validate:
     @staticmethod
-    def Validate_user(user: User):
-        user.username = Validate.validate_input("Enter username: ", custom_validator=Validate.is_valid_username)
-        user.password = Validate.validate_input("Enter password: ", custom_validator=Validate.is_valid_password)
-        user.first_name = Validate.validate_input("Enter first name: (2-20)", min_length=2, max_length=20)
-        user.last_name = Validate.validate_input("Enter last name: (2-20)", min_length=2, max_length=20)
-        return user
+    def Validate_user(user: User, New_user: User):
+        New_user.username = Validate.validate_input("Enter username: ", username=user.username, custom_validator=Validate.is_valid_username)
+        New_user.password = Validate.validate_input("Enter password: ", username=user.username, custom_validator=Validate.is_valid_password)
+        New_user.first_name = Validate.validate_input("Enter first name: (2-20)", username=user.username, min_length=2, max_length=20)
+        New_user.last_name = Validate.validate_input("Enter last name: (2-20)", username=user.username, min_length=2, max_length=20)
+        return New_user
     
     @staticmethod
-    def Validate_addscooter(scooter: Scooter):
-        scooter.serial_number = Validate.validate_input("Enter serial number (unique 10-17 alphanumeric): ", custom_validator=Validate.is_valid_serialnumber)
-        scooter.brand = Validate.validate_input("Enter brand: (1-20)", min_length=1, max_length=20)
-        scooter.model = Validate.validate_input("Enter model: (1-20)", min_length=1, max_length=20)
-        scooter.top_speed = Validate.validate_input("Enter top speed (km/h): ", custom_validator=Validate.is_valid_topspeed)
-        scooter.battery_capacity = Validate.validate_input("Enter battery capacity (Wh): ", custom_validator=Validate.is_valid_battery_capacity)
-        scooter.soc = Validate.validate_input("Enter state of charge (0-100): ", custom_validator=Validate.is_valid_soc)
+    def Validate_addscooter(user: User, scooter: Scooter):
+        scooter.serial_number = Validate.validate_input("Enter serial number (unique 10-17 alphanumeric): ", username=user.username, username=user.username, custom_validator=Validate.is_valid_serialnumber)
+        scooter.brand = Validate.validate_input("Enter brand: (1-20)", username=user.username, min_length=1, max_length=20)
+        scooter.model = Validate.validate_input("Enter model: (1-20)", username=user.username, min_length=1, max_length=20)
+        scooter.top_speed = Validate.validate_input("Enter top speed (km/h): ", username=user.username, custom_validator=Validate.is_valid_topspeed)
+        scooter.battery_capacity = Validate.validate_input("Enter battery capacity (Wh): ", username=user.username, custom_validator=Validate.is_valid_battery_capacity)
+        scooter.soc = Validate.validate_input("Enter state of charge (0-100): ", username=user.username, custom_validator=Validate.is_valid_soc)
         while True:
-            min_soc = Validate.validate_input("Enter target range SOC min (0-100): ")
-            max_soc = Validate.validate_input("Enter target range SOC max (0-100): ")
+            min_soc = Validate.validate_input("Enter target range SOC min (0-100): ", username=user.username)
+            max_soc = Validate.validate_input("Enter target range SOC max (0-100): ", username=user.username)
             if Validate.is_valid_target_soc(min_soc, max_soc):
                 scooter.target_range_soc = (min_soc, max_soc)
                 break
             print("Invalid target range SOC. Ensure 0 <= min < max <= 100.")
         while True:
-            latitude = Validate.validate_input("Enter latitude (51.85000 - 51.99000, 5 decimals): ")
-            longitude = Validate.validate_input("Enter longitude (4.40000 - 4.60000, 5 decimals): ")
+            latitude = Validate.validate_input("Enter latitude (51.85000 - 51.99000, 5 decimals): ", username=user.username)
+            longitude = Validate.validate_input("Enter longitude (4.40000 - 4.60000, 5 decimals): ", username=user.username)
             if Validate.is_valid_location(latitude, longitude):
                 scooter.location = (latitude, longitude)
                 break
             print("Invalid location. Ensure latitude is between 51.85000 and 51.99000, and longitude is between 4.40000 and 4.60000, both with 5 decimal places.")
-        scooter.out_of_service = Validate.validate_input("Is the scooter out of service? (1 for true/0 for false): ", custom_validator=Validate.is_valid_out_of_service)
-        scooter.mileage = Validate.validate_input("Enter mileage: ", custom_validator=Validate.is_valid_mileage)
+        scooter.out_of_service = Validate.validate_input("Is the scooter out of service? (1 for true/0 for false): ", username=user.username, custom_validator=Validate.is_valid_out_of_service)
+        scooter.mileage = Validate.validate_input("Enter mileage: ", username=user.username, custom_validator=Validate.is_valid_mileage)
         scooter.last_maintenance_date = datetime.today().strftime("%Y-%m-%d")
         return scooter
     
     @staticmethod
-    def validate_updatescooter_engineer(scooter):
-        scooter.soc = Validate.validate_input("Enter new SOC (0-100): ", custom_validator=Validate.is_valid_soc)
+    def validate_updatescooter_engineer(user: User, scooter: Scooter):
+        scooter.soc = Validate.validate_input("Enter new SOC (0-100): ", username=user.username, custom_validator=Validate.is_valid_soc)
         while True:
-            min_soc = Validate.validate_input("Enter new target range SOC min (0-100): ")
-            max_soc = Validate.validate_input("Enter new target range SOC max (0-100): ")
+            min_soc = Validate.validate_input("Enter new target range SOC min (0-100): ", username=user.username)
+            max_soc = Validate.validate_input("Enter new target range SOC max (0-100): ", username=user.username)
             if Validate.is_valid_target_soc(min_soc, max_soc):
                 scooter.target_range_soc = (min_soc, max_soc)
                 break
             print("Invalid target range SOC. Ensure 0 <= min < max <= 100.")
         while True:
-            latitude = Validate.validate_input("Enter new latitude (51.85000 - 51.99000, 5 decimals): ")
-            longitude = Validate.validate_input("Enter new longitude (4.40000 - 4.60000, 5 decimals): ")
+            latitude = Validate.validate_input("Enter new latitude (51.85000 - 51.99000, 5 decimals): ", username=user.username)
+            longitude = Validate.validate_input("Enter new longitude (4.40000 - 4.60000, 5 decimals): ", username=user.username)
             if Validate.is_valid_location(latitude, longitude):
                 scooter.location = (latitude, longitude)
                 break
             print("Invalid location. Ensure latitude is between 51.85000 and 51.99000, and longitude is between 4.40000 and 4.60000, both with 5 decimal places.")
-        scooter.out_of_service = Validate.validate_input("Is the scooter out of service? (1 for true/0 for false): ", custom_validator=Validate.is_valid_out_of_service)
-        scooter.mileage = Validate.validate_input("Enter new mileage: ", custom_validator=Validate.is_valid_mileage)
-        scooter.last_maintenance_date = Validate.validate_input("Enter new last maintenance date (YYYY-MM-DD): ",custom_validator=lambda d: Validate.is_valid_last_maintenance_date(d, scooter=scooter))
+        scooter.out_of_service = Validate.validate_input("Is the scooter out of service? (1 for true/0 for false): ", username=user.username, custom_validator=Validate.is_valid_out_of_service)
+        scooter.mileage = Validate.validate_input("Enter new mileage: ", username=user.username, custom_validator=Validate.is_valid_mileage)
+        scooter.last_maintenance_date = Validate.validate_input("Enter new last maintenance date (YYYY-MM-DD): ", username=user.username, custom_validator=lambda d: Validate.is_valid_last_maintenance_date(d, scooter=scooter))
         return scooter
 
     
@@ -197,7 +197,9 @@ class Validate:
         min_length: int = 1,
         max_length: int = 255,
         allow_null_byte: bool = False,
-        custom_validator=None
+        custom_validator=None,
+        username: str = "",
+        activity: str = "Input validation failed"
     ):
         while True:
             value = input(prompt).strip()

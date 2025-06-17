@@ -35,8 +35,8 @@ class SuperAdminFunctions:
 # ("0", "Logout"),
 
     @staticmethod
-    def add_system_admin():
+    def add_system_admin(user: User):
         print("Add System Admin selected.")
         new_user = User(role="System Admin")
-        new_user = Validate.Validate_user(new_user)
-        Utility.Add_user(new_user)  
+        new_user = Validate.Validate_user(user, new_user)
+        Utility.Add_user(user, new_user)

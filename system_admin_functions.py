@@ -34,15 +34,15 @@ class SystemAdminFunctions:
     def update_password(user: User):
         print("Update own password selected.")
         row_id = Utility.fetch_userinfo(user.username, row_id=True)
-        new_password = Validate.validate_input("Enter new password: ", custom_validator=Validate.is_valid_password)
-        Utility.update_passwordDB(new_password, row_id)
+        new_password = Validate.validate_input("Enter new password: ",username=user.username, custom_validator=Validate.is_valid_password)
+        Utility.update_passwordDB(user, new_password, row_id)
 
     @staticmethod
-    def add_service_engineer():
+    def add_service_engineer(user: User):
         print("Add Service Engineer selected.")
         new_user = User(role="Service Engineer")
-        new_user = Validate.Validate_user(new_user)
-        Utility.Add_user(new_user)
+        new_user = Validate.Validate_user(user, new_user)
+        Utility.Add_user(user, new_user)
 
     @staticmethod
     def list_users_and_roles(user):
@@ -77,8 +77,9 @@ class SystemAdminFunctions:
         return
 
     @staticmethod
-    def print_logs(user):
-        return
+    def print_logs(user: User):
+        print("Print logs selected.")
+        Utility.print_logs(user)
 
     @staticmethod
     def add_traveller(user):
@@ -89,8 +90,11 @@ class SystemAdminFunctions:
         return
 
     @staticmethod
-    def add_scooter(user):
-        return
+    def add_scooter(user: User):
+        print("Add Scooter selected.")
+        new_scooter = Scooter()
+        new_scooter = Validate.Validate_addscooter(user, new_scooter, add=True)
+        Utility.Add_scooter(user, new_scooter)
 
     @staticmethod
     def update_scooter(user):

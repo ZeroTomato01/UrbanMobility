@@ -14,7 +14,7 @@ class Utility:
         raise NotImplementedError("This class is not meant to be instantiated directly.")
     
     @staticmethod
-    def Add_scooter(scooter: Scooter):
+    def Add_scooter(user: User, scooter: Scooter):
         try:
             conn = sqlite3.connect('scooters.db')
             c = conn.cursor()
@@ -43,25 +43,27 @@ class Utility:
             conn.commit()
             conn.close()
             print("Scooter added successfully.")
+            Utility.log_activity(user.username, "Add scooter to DB", additional_info="Scooter added to DB succesful", suspicious_count = 0)
         except sqlite3.Error as e:
             print("Error adding scooter to the database. Please check the input values.")
             print(f"SQLite error: {e}")
+            Utility.log_activity(user.username, "Add scooter to DB", additional_info=f"Add scooter to DB failed: {e}", suspicious_count = 3)
             return
     
     @staticmethod
-    def Add_user(user):
+    def Add_user(user: User, new_user: User):
         try:
             encrypt = Utility.load_key()
-            enc_username = encrypt.encrypt(user.username.encode('utf-8'))
-            hash_password = hashlib.sha256(user.password.encode('utf-8')).hexdigest()
-            enc_first_name = encrypt.encrypt(user.first_name.encode('utf-8'))
-            enc_last_name = encrypt.encrypt(user.last_name.encode('utf-8'))
+            enc_username = encrypt.encrypt(new_user.username.encode('utf-8'))
+            hash_password = hashlib.sha256(new_user.password.encode('utf-8')).hexdigest()
+            enc_first_name = encrypt.encrypt(new_user.first_name.encode('utf-8'))
+            enc_last_name = encrypt.encrypt(new_user.last_name.encode('utf-8'))
             conn = sqlite3.connect('users.db')
             c = conn.cursor()
             c.execute('''
                 INSERT INTO users (role, username, password, first_name, last_name) VALUES (?, ?, ?, ?, ?)
             ''', (
-                user.role,
+                new_user.role,
                 enc_username,
                 hash_password,
                 enc_first_name,
@@ -70,15 +72,17 @@ class Utility:
             conn.commit()
             conn.close()
             print("User added successfully.")
+            Utility.log_activity(user.username, "Add user to DB", additional_info="User added to DB succesful", suspicious_count = 0)
         except sqlite3.Error as e:
             print("Error adding user to the database. Please check the input values.")
             print(f"SQLite error: {e}")
+            Utility.log_activity(user.username, "Add user to DB", additional_info=f"Add user to DB failed: {e}", suspicious_count = 3)
             return
 
     @staticmethod
     def log_activity(username, activity, additional_info="", suspicious_count = 0):
         suspicious = False
-        if suspicious_count > 1:
+        if suspicious_count > 2:
             suspicious = True
         encrypt = Utility.load_key()
         enc_username = encrypt.encrypt(username.encode('utf-8'))
@@ -88,7 +92,7 @@ class Utility:
         conn = sqlite3.connect('logs.db')
         c = conn.cursor()
         c.execute('''
-            INSERT INTO logs (date, time, username, activity, additional_info, suspicious, unread)
+            INSERT INTO logs (username, activity, additional_info, suspicious, unread)
             VALUES (?, ?, ?, ?, ?)
         ''', (
             enc_username,
@@ -101,7 +105,7 @@ class Utility:
         conn.close()
     
     @staticmethod
-    def print_logs():
+    def print_logs(user: User):
         encrypt = Utility.load_key()
         conn = sqlite3.connect('logs.db')
         conn.row_factory = sqlite3.Row
@@ -110,18 +114,19 @@ class Utility:
         c.execute("SELECT * FROM logs ORDER BY id DESC")
         logs = c.fetchall()
 
-        print("No. | Date       | Time     | Username      | Activity Description                | Additional Info         | Suspicious")
-        print("-" * 100)
+        print("No. | Date       | Time     | Username      | Activity Description         | Additional Info                                 | Suspicious")
+        print("-" * 125)
         for log in logs:
             username = encrypt.decrypt(log['username']).decode('utf-8')
             activity = encrypt.decrypt(log['activity']).decode('utf-8')
             additional_info = encrypt.decrypt(log['additional_info']).decode('utf-8') if log['additional_info'] else ""
-            print(f"{log['id']:>3} | {log['date']} | {log['time']} | {username:<13} | {activity:<35} | {additional_info:<20} | {'Yes' if log['suspicious'] else 'No'}")
+            print(f"{log['id']:>3} | {log['date']} | {log['time']} | {username:<13} | {activity:<20} | {additional_info:<60} | {'Yes' if log['suspicious'] else 'No':<4}")
 
         # Set all unread logs to 0
         c.execute("UPDATE logs SET unread = 0 WHERE unread != 0")
         conn.commit()
         conn.close()
+        Utility.log_activity(user.username, "Print logs", additional_info="User printed logs", suspicious_count = 0)
 
     @staticmethod
     def generate_key():
@@ -216,7 +221,7 @@ class Utility:
             return None
     
     @staticmethod
-    def update_passwordDB(password, row_id):
+    def update_passwordDB(user: User, password, row_id):
         try:
             conn = sqlite3.connect('users.db')
             c = conn.cursor()
@@ -225,14 +230,16 @@ class Utility:
             conn.commit()
             conn.close()
             print("Password updated successfully.")
-        except sqlite3.Error:
-            print("Error updating password in the database.")
+            Utility.log_activity(user.username, "Update password to DB", additional_info="Update password to DB succesful", suspicious_count = 0)
+        except sqlite3.Error as e:
+            print(f"Error updating password in the database: {e}")
+            Utility.log_activity(user.username, "Update password to DB", additional_info=f"Update password to DB failed: {e}", suspicious_count = 3)
             return
     
     @staticmethod
     def update_scooter_attributes(user: User, scooter: Scooter):
         if user.role == "Service Engineer":
-            scooter = Validate.validate_updatescooter_engineer(scooter)
+            scooter = Validate.validate_updatescooter_engineer(user, scooter)
             # Update the scooter in the database
             try:
                 conn = sqlite3.connect('scooters.db')
@@ -262,8 +269,10 @@ class Utility:
                 conn.commit()
                 conn.close()
                 print("Scooter attributes updated successfully.")
+                Utility.log_activity(user.username, "Update scooter to DB", additional_info="Update scooter to DB succesful", suspicious_count = 0)
             except sqlite3.Error as e:
                 print("Error updating scooter in the database:", e)
+                Utility.log_activity(user.username, "Update scooter to DB", additional_info=f"Update scooter to DB failed: {e}", suspicious_count = 3)
 
     
     
