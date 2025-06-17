@@ -15,7 +15,7 @@ class Validate:
     
     @staticmethod
     def Validate_addscooter(user: User, scooter: Scooter):
-        scooter.serial_number = Validate.validate_input("Enter serial number (unique 10-17 alphanumeric): ", username=user.username, username=user.username, custom_validator=Validate.is_valid_serialnumber)
+        scooter.serial_number = Validate.validate_input("Enter serial number (unique 10-17 alphanumeric): ", username=user.username, custom_validator=Validate.is_valid_serialnumber)
         scooter.brand = Validate.validate_input("Enter brand: (1-20)", username=user.username, min_length=1, max_length=20)
         scooter.model = Validate.validate_input("Enter model: (1-20)", username=user.username, min_length=1, max_length=20)
         scooter.top_speed = Validate.validate_input("Enter top speed (km/h): ", username=user.username, custom_validator=Validate.is_valid_topspeed)
