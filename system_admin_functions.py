@@ -56,8 +56,7 @@ class SystemAdminFunctions:
         conn.close()
         for row in rows:
             decrypted_username = encrypt.decrypt(row['username']).decode('utf-8')
-            decrypted_role = row['role']
-            print(f"- {decrypted_username}: {decrypted_role}")
+            print(f"- {decrypted_username}: {row['role']}")
 
     @staticmethod
     def update_service_engineer_profile(user):

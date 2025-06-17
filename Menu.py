@@ -152,29 +152,27 @@ class Menu:
     @staticmethod
     def super_admin_menu(user: User):
         menu_options = [
-            ("1", "Update scooter attributes"),
-            ("2", "Search/retrieve scooter info"),
-            ("3", "List users and roles"),
-            ("4", "Add Service Engineer"),
-            ("5", "Update Service Engineer profile"),
-            ("6", "Delete Service Engineer"),
-            ("7", "Reset Service Engineer password (temp password)"),
-            ("8", "View logs"),
-            ("9", "Add Traveller"),
-            ("10", "Update Traveller"),
-            ("11", "Delete Traveller"),
-            ("12", "Add Scooter"),
-            ("13", "Update Scooter"),
-            ("14", "Delete Scooter"),
-            ("15", "Search/retrieve Traveller info"),
-            ("16", "Add System Administrator"),
-            ("17", "Update System Administrator profile"),
-            ("18", "Delete System Administrator"),
-            ("19", "Reset System Administrator password (temp password)"),
-            ("20", "Backup system"),
-            ("21", "Restore backup"),
-            ("22", "Generate restore-code"),
-            ("23", "Revoke restore-code"),
+            ("1", "Search/retrieve scooter info + update"),
+            ("2", "List users and roles"),
+            ("3", "Add Service Engineer"),
+            ("4", "Update Service Engineer profile"),
+            ("5", "Delete Service Engineer"),
+            ("6", "Reset Service Engineer password (temp password)"),
+            ("7", "View logs"),
+            ("8", "Add Traveller"),
+            ("9", "Update Traveller"),
+            ("10", "Delete Traveller"),
+            ("11", "Add Scooter"),
+            ("12", "Delete Scooter"),
+            ("13", "Search/retrieve Traveller info"),
+            ("14", "Add System Administrator"),
+            ("15", "Update System Administrator profile"),
+            ("16", "Delete System Administrator"),
+            ("17", "Reset System Administrator password (temp password)"),
+            ("18", "Backup system"),
+            ("19", "Restore backup"),
+            ("20", "Generate restore-code"),
+            ("21", "Revoke restore-code"),
             ("0", "Logout"),
         ]
 
@@ -190,51 +188,46 @@ class Menu:
                     Utility.log_activity(user.username, "Logout succesful")
                     exit()
                 case "1":
-                    print("Update scooter attributes selected.")
-                case "2":
-                    print("Search/retrieve scooter info selected.")
                     ServiceEngineerFunctions.search_print_update_scooter(user)
+                case "2":
+                    SystemAdminFunctions.list_users_and_roles(user)
                 case "3":
-                    print("List users and roles selected.")
-                case "4":
                     SystemAdminFunctions.add_service_engineer(user)
-                case "5":
+                case "4":
                     print("Update Service Engineer profile selected.")
-                case "6":
+                case "5":
                     print("Delete Service Engineer selected.")
-                case "7":
+                case "6":
                     print("Reset Service Engineer password (temp password) selected.")
-                case "8":
+                case "7":
                     SystemAdminFunctions.print_logs(user)
-                case "9":
+                case "8":
                     print("Add Traveller selected.")
-                case "10":
+                case "9":
                     print("Update Traveller selected.")
-                case "11":
+                case "10":
                     print("Delete Traveller selected.")
-                case "12":
+                case "11":
                     SystemAdminFunctions.add_scooter(user)
-                case "13":
-                    print("Update Scooter selected.")
-                case "14":
+                case "12":
                     print("Delete Scooter selected.")
-                case "15":
+                case "13":
                     print("Search/retrieve Traveller info selected.")
-                case "16":
+                case "14":
                     SuperAdminFunctions.add_system_admin(user)
-                case "17":
+                case "15":
                     print("Update System Administrator profile selected.")
-                case "18":
+                case "16":
                     print("Delete System Administrator selected.")
-                case "19":
+                case "17":
                     print("Reset System Administrator password (temp password) selected.")
-                case "20":
+                case "18":
                     print("Backup system selected.")
-                case "21":
+                case "19":
                     print("Restore backup selected.")
-                case "22":
+                case "20":
                     print("Generate restore-code selected.")
-                case "23":
+                case "21":
                     print("Revoke restore-code selected.")
                 case _:
                     print("Invalid option. Please try again.")
