@@ -77,17 +77,25 @@ class Utility:
 
     @staticmethod
     def log_activity(username, activity, additional_info="", suspicious=False):
+        now = datetime.now()
+        date = now.strftime('%Y-%m-%d')
+        time = now.strftime('%H:%M:%S')
+
         encrypt = Utility.load_key()
         enc_username = encrypt.encrypt(username.encode('utf-8'))
         enc_activity = encrypt.encrypt(activity.encode('utf-8'))
         enc_additional = encrypt.encrypt(additional_info.encode('utf-8'))
+        enc_date = encrypt.encrypt(date.encode('utf-8'))
+        enc_time = encrypt.encrypt(time.encode('utf-8'))
 
         conn = sqlite3.connect('logs.db')
         c = conn.cursor()
         c.execute('''
-            INSERT INTO logs (username, activity, additional_info, suspicious, unread)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO logs (date, time, username, activity, additional_info, suspicious, unread)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         ''', (
+            enc_date,
+            enc_time,
             enc_username,
             enc_activity,
             enc_additional,

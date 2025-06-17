@@ -4,6 +4,7 @@ from Models.Scooter import Scooter
 from Utils import Utility
 from Validate import Validate
 
+
 class Menu:
     def __init__(self):
         raise NotImplementedError("This class is not meant to be instantiated directly.")
@@ -99,45 +100,65 @@ class Menu:
                 case "1":
                     # log update password event
                     update_password(user)
+                    Utility.log_activity(user.username, "Update own password", "" , False)
                 case "2":
                     print("Update scooter attributes selected.")
+                    Utility.log_activity(user.username, "Update scooter attributes", "" , False)
                 case "3":
                     print("Search/retrieve scooter info selected.")
+                    Utility.log_activity(user.username, "Search/retrieve scooter info", "" , False)
                 case "4":
                     print("List users and roles selected.")
+                    Utility.log_activity(user.username, "List users and roles", "" , False)
                 case "5":
                     # log add service engineer event
                     add_service_engineer()
+                    Utility.log_activity(user.username, "Add Service Engineer", "" , False)
                 case "6":
                     print("Update Service Engineer profile selected.")
+                    Utility.log_activity(user.username, "Update Service Engineer profile", "" , False)
                 case "7":
                     print("Delete Service Engineer selected.")
+                    Utility.log_activity(user.username, "Delete Service Engineer", "" , False)
                 case "8":
                     print("Reset Service Engineer password (temp password) selected.")
+                    Utility.log_activity(user.username, "Reset Service Engineer password (temp password)", "" , False)
                 case "9":
                     print("Update own account selected.")
+                    Utility.log_activity(user.username, "update own account", "" , False)
                 case "10":
                     print("Delete own account selected.")
+                    Utility.log_activity(user.username, "delete own account", "" , False)
                 case "11":
                     print("Create backup selected.")
+                    Utility.log_activity(user.username, "Create backup", "" , False)
                 case "12":
                     print("Restore backup (with restore-code from SA) selected.")
+                    Utility.log_activity(user.username, "Restore backup (with restore-code from SA)", "" , False)
                 case "13":
                     print("Print logs selected.")
+                    Utility.log_activity(user.username, "Print logs", "" , False)
                 case "14":
                     print("Add Traveller selected.")
+                    Utility.log_activity(user.username, "Add Traveller", "" , False)
                 case "15":
                     print("Update Traveller selected.")
+                    Utility.log_activity(user.username, "Update Traveller", "" , False)
                 case "16":
                     add_scooter()
+                    Utility.log_activity(user.username, "Add Scooter", "" , False)
                 case "17":
                     print("Update Scooter selected.")
+                    Utility.log_activity(user.username, "Update Scooter", "" , False)
                 case "18":
                     print("Delete Scooter selected.")
+                    Utility.log_activity(user.username, "Delete Scooter", "" , False)
                 case "19":
                     print("Search/retrieve Traveller info selected.")
+                    Utility.log_activity(user.username, "Search/retrieve Traveller info", "" , False)
                 case _:
                     print("Invalid option. Please try again.")
+                    Utility.log_activity(user.username, "User entered something invalid: ${_}", "" , False)
 
     @staticmethod
     def super_admin_menu(user: User):
