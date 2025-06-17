@@ -172,24 +172,22 @@ class Utility:
 
         if best_row and best_score > 0:
             scooter = Scooter(
-                serial_number=best_row['serial_number'],
                 brand=best_row['brand'],
                 model=best_row['model'],
+                serial_number=best_row['serial_number'],
                 top_speed=best_row['top_speed'],
                 battery_capacity=best_row['battery_capacity'],
                 soc=best_row['soc'],
-                target_range_soc_min=best_row['target_range_soc_min'],
-                target_range_soc_max=best_row['target_range_soc_max'],
-                latitude=best_row['latitude'],
-                longitude=best_row['longitude'],
-                out_of_service=best_row['out_of_service'],
-                mileage=best_row['mileage'],
+                target_range_soc=(best_row['target_range_soc_min'], best_row['target_range_soc_max']),
+                location=(str(best_row['latitude']), str(best_row['longitude'])),
+                out_of_service=bool(best_row['out_of_service']),
+                mileage=float(best_row['mileage']),
                 last_maintenance_date=best_row['last_maintenance_date'],
                 in_service_date=best_row['in_service_date']
             )
-            return scooter, best_row['rowid']
+            return scooter
         else:
-            return None, None
+            return None
     
     @staticmethod
     def update_passwordDB(password, row_id):
@@ -207,31 +205,41 @@ class Utility:
     
     @staticmethod
     def update_scooter_attributes(user: User, scooter: Scooter):
-        return True
+        if user.role == "Service Engineer":
+            scooter = Validate.validate_updatescooter_engineer(scooter)
+            # Update the scooter in the database
+            try:
+                conn = sqlite3.connect('scooters.db')
+                c = conn.cursor()
+                c.execute('''
+                    UPDATE scooters SET
+                        soc = ?,
+                        target_range_soc_min = ?,
+                        target_range_soc_max = ?,
+                        latitude = ?,
+                        longitude = ?,
+                        out_of_service = ?,
+                        mileage = ?,
+                        last_maintenance_date = ?
+                    WHERE serial_number = ?
+                ''', (
+                    scooter.soc,
+                    scooter.target_range_soc[0],
+                    scooter.target_range_soc[1],
+                    scooter.location[0],
+                    scooter.location[1],
+                    int(scooter.out_of_service),
+                    scooter.mileage,
+                    scooter.last_maintenance_date,
+                    scooter.serial_number
+                ))
+                conn.commit()
+                conn.close()
+                print("Scooter attributes updated successfully.")
+            except sqlite3.Error as e:
+                print("Error updating scooter in the database:", e)
 
     
-
-    edit_permissions = {
-        "brand": ["Super Administrator", "System Administrator"],
-        "model": ["Super Administrator", "System Administrator"],
-        "serial_number": ["Super Administrator", "System Administrator"],
-        "top_speed": ["Super Administrator", "System Administrator"],
-        "battery_capacity": ["Super Administrator", "System Administrator"],
-        "soc": ["Super Administrator", "System Administrator", "Service Engineer"],
-        "target_range_soc": ["Super Administrator", "System Administrator", "Service Engineer"],
-        "location": ["Super Administrator", "System Administrator", "Service Engineer"],
-        "out_of_service": ["Super Administrator", "System Administrator", "Service Engineer"],
-        "mileage": ["Super Administrator", "System Administrator", "Service Engineer"],
-        "last_maintenance_date": ["Super Administrator", "System Administrator", "Service Engineer"],
-    }
-
-    @staticmethod
-    def get_roles_for_field(field: str):
-        return Utility.edit_permissions.get(field, [])
-
-    @staticmethod
-    def can_edit(field: str, role: str) -> bool:
-        return role in Utility.get_roles_for_field(field)
     
     @staticmethod
     def create_backup():
@@ -296,10 +304,10 @@ class Utility:
         print(f"Top Speed: {scooter.top_speed}")
         print(f"Battery Capacity: {scooter.battery_capacity}")
         print(f"State of Charge (SOC): {scooter.soc}")
-        print(f"Target Range SOC Min: {scooter.target_range_soc_min}")
-        print(f"Target Range SOC Max: {scooter.target_range_soc_max}")
-        print(f"Latitude: {scooter.latitude}")
-        print(f"Longitude: {scooter.longitude}")
+        print(f"Target Range SOC Min: {scooter.target_range_soc[0]}")
+        print(f"Target Range SOC Max: {scooter.target_range_soc[1]}")
+        print(f"Latitude: {scooter.location[0]}")
+        print(f"Longitude: {scooter.location[1]}")
         print(f"Out of Service: {'Yes' if scooter.out_of_service else 'No'}")
         print(f"Mileage: {scooter.mileage}")
         print(f"Last Maintenance Date: {scooter.last_maintenance_date}")

@@ -250,6 +250,7 @@ def search_print_update_scooter(user: User):
             end_search = input("end search? (Y/N)").lower()
             if end_search == 'y':
                 return
+            continue
         Utility.print_scooterinfo(scooter)
         edit = input("Edit scooter attributes? (Y/N)").lower()
         if edit == 'y':
@@ -267,5 +268,5 @@ def add_service_engineer():
 def add_scooter():
     print("Add Scooter selected.")
     new_scooter = Scooter()
-    new_scooter = Validate.Validate_scooter(new_scooter, add=True)
+    new_scooter = Validate.Validate_addscooter(new_scooter, add=True)
     Utility.Add_scooter(new_scooter)

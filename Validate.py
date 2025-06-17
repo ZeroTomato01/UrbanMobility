@@ -14,7 +14,7 @@ class Validate:
         return user
     
     @staticmethod
-    def Validate_scooter(scooter: Scooter, add=False):
+    def Validate_addscooter(scooter: Scooter):
         scooter.serial_number = Validate.validate_input("Enter serial number (unique 10-17 alphanumeric): ", custom_validator=Validate.is_valid_serialnumber)
         scooter.brand = Validate.validate_input("Enter brand: (1-20)", min_length=1, max_length=20)
         scooter.model = Validate.validate_input("Enter model: (1-20)", min_length=1, max_length=20)
@@ -37,10 +37,29 @@ class Validate:
             print("Invalid location. Ensure latitude is between 51.85000 and 51.99000, and longitude is between 4.40000 and 4.60000, both with 5 decimal places.")
         scooter.out_of_service = Validate.validate_input("Is the scooter out of service? (1 for true/0 for false): ", custom_validator=Validate.is_valid_out_of_service)
         scooter.mileage = Validate.validate_input("Enter mileage: ", custom_validator=Validate.is_valid_mileage)
-        if add:
-            scooter.last_maintenance_date = datetime.today().strftime("%Y-%m-%d")
-            return scooter
-        scooter.last_maintenance_date = Validate.validate_input("Enter last maintenance date (YYYY-MM-DD): ", custom_validator=lambda d: Validate.is_valid_last_maintenance_date(d, scooter=scooter))
+        scooter.last_maintenance_date = datetime.today().strftime("%Y-%m-%d")
+        return scooter
+    
+    @staticmethod
+    def validate_updatescooter_engineer(scooter):
+        scooter.soc = Validate.validate_input("Enter new SOC (0-100): ", custom_validator=Validate.is_valid_soc)
+        while True:
+            min_soc = Validate.validate_input("Enter new target range SOC min (0-100): ")
+            max_soc = Validate.validate_input("Enter new target range SOC max (0-100): ")
+            if Validate.is_valid_target_soc(min_soc, max_soc):
+                scooter.target_range_soc = (min_soc, max_soc)
+                break
+            print("Invalid target range SOC. Ensure 0 <= min < max <= 100.")
+        while True:
+            latitude = Validate.validate_input("Enter new latitude (51.85000 - 51.99000, 5 decimals): ")
+            longitude = Validate.validate_input("Enter new longitude (4.40000 - 4.60000, 5 decimals): ")
+            if Validate.is_valid_location(latitude, longitude):
+                scooter.location = (latitude, longitude)
+                break
+            print("Invalid location. Ensure latitude is between 51.85000 and 51.99000, and longitude is between 4.40000 and 4.60000, both with 5 decimal places.")
+        scooter.out_of_service = Validate.validate_input("Is the scooter out of service? (1 for true/0 for false): ", custom_validator=Validate.is_valid_out_of_service)
+        scooter.mileage = Validate.validate_input("Enter new mileage: ", custom_validator=Validate.is_valid_mileage)
+        scooter.last_maintenance_date = Validate.validate_input("Enter new last maintenance date (YYYY-MM-DD): ",custom_validator=lambda d: Validate.is_valid_last_maintenance_date(d, scooter=scooter))
         return scooter
 
     
