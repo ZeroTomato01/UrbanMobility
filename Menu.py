@@ -121,7 +121,7 @@ class Menu:
                 case "9":
                     print("update own account")
                 case "10":
-                    print("delete own account")
+                    SystemAdminFunctions.delete_own_account(user)
                 case "11":
                     SystemAdminFunctions.create_backup(user)
                 case "12":

@@ -8,27 +8,6 @@ from Validate import Validate
 class SystemAdminFunctions:
     def __init__(self):
         raise NotImplementedError("This class is not meant to be instantiated directly.")
-    
-    # ("1", "Update own password"),
-    # ("2", "Update scooter attributes"),
-    # ("3", "Search/retrieve scooter info"),
-    # ("4", "List users and roles"),
-    # ("5", "Add Service Engineer"),
-    # ("6", "Update Service Engineer profile"),
-    # ("7", "Delete Service Engineer"),
-    # ("8", "Reset Service Engineer password (temp password)"),
-    # ("9", "update own account"),
-    # ("10", "delete own account"),
-    # ("11", "Create backup"),
-    # ("12", "Restore backup (with restore-code from SA)"),
-    # ("13", "Print logs"),
-    # ("14", "Add Traveller"),
-    # ("15", "Update Traveller"),
-    # ("16", "Add Scooter"),
-    # ("17", "Update Scooter"),
-    # ("18", "Delete Scooter"),
-    # ("19", "Search/retrieve Traveller info"),
-    # ("0", "Logout"),
 
     @staticmethod
     def add_service_engineer(user: User):
@@ -75,6 +54,18 @@ class SystemAdminFunctions:
             if delete == 'y':
                 Utility.delete_user(user, delete_user)
             return
+    
+    @staticmethod
+    def delete_own_account(user: User):
+        print("Delete own account selected")
+        while True:
+            delete = input("Delete user? (Y/N)").lower()
+            if delete == 'y':
+                delete_user = user
+                Utility.delete_user(user, delete_user)
+            return
+
+
 
     @staticmethod
     def print_logs(user: User):
