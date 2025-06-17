@@ -7,8 +7,8 @@ import sqlite3
 import hashlib
 
 
-class ServiceEngineerFunctions:
-    
+class SeedDB:
+
     @staticmethod
     def Reset_db():
         InitDB.Del_userdb()
