@@ -35,7 +35,7 @@ class SystemAdminFunctions:
     def update_password(user: User):
         print("Update own password selected.")
         row_id = Utility.fetch_userinfo(user.username, row_id=True)
-        new_password = Validate.validate_input("Enter new password: ", custom_validator=Utility.is_valid_password)
+        new_password = Validate.validate_input("Enter new password: ", custom_validator=Validate.is_valid_password)
         Utility.update_passwordDB(new_password, row_id)
 
     @staticmethod

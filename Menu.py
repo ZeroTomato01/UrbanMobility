@@ -236,7 +236,7 @@ class Menu:
                 case "6":
                     print("Delete Service Engineer selected.")
                 case "7":
-                    print("Reset Service Engineer password selected.")
+                    print("Reset Service Engineer password (temp password) selected.")
                 case "8":
                     print("View logs selected.")
                 case "9":
@@ -246,6 +246,7 @@ class Menu:
                 case "11":
                     print("Delete Traveller selected.")
                 case "12":
+                    # log the add scooter event
                     add_scooter()
                 case "13":
                     print("Update Scooter selected.")
@@ -261,7 +262,7 @@ class Menu:
                 case "18":
                     print("Delete System Administrator selected.")
                 case "19":
-                    print("Reset System Administrator password selected.")
+                    print("Reset System Administrator password (temp password) selected.")
                 case "20":
                     print("Backup system selected.")
                 case "21":
