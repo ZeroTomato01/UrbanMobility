@@ -63,9 +63,55 @@ class SystemAdminFunctions:
             if delete == 'y':
                 delete_user = user
                 Utility.delete_user(user, delete_user)
+                from um_members import main
+                main()
             return
 
-
+    @staticmethod
+    def update_account_engineer(user: User):
+        print("Update account of engineer selected")
+        while True:
+            keyword = input("Enter user info to search: ").strip()
+            update_user = Utility.fetch_searchuser(keyword, role="Service Engineer")
+            if not update_user:
+                print("No user found with that info.")
+                end_search = input("end search? (Y/N)").lower()
+                if end_search == 'y':
+                    return
+                continue
+            Utility.print_userinfo(update_user)
+            update = input("Update user? (Y/N)").lower()
+            if update == 'y':
+                Utility.update_account(user, update_user)
+            return
+    
+    @staticmethod
+    def update_account_sysadmin(user: User):
+        print("Update account of system admin selected")
+        while True:
+            keyword = input("Enter user info to search: ").strip()
+            update_user = Utility.fetch_searchuser(keyword, role="System Administrator")
+            if not update_user:
+                print("No user found with that info.")
+                end_search = input("end search? (Y/N)").lower()
+                if end_search == 'y':
+                    return
+                continue
+            Utility.print_userinfo(update_user)
+            update = input("Update user? (Y/N)").lower()
+            if update == 'y':
+                Utility.update_account(user, update_user)
+            return
+    
+    @staticmethod
+    def update_own_account(user: User):
+        print("Update account of engineer selected")
+        while True:
+            Utility.print_userinfo(user)
+            update = input("Update user? (Y/N)").lower()
+            if update == 'y':
+                Utility.update_account(user, user)
+            return
 
     @staticmethod
     def print_logs(user: User):

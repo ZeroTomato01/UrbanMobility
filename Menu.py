@@ -113,19 +113,19 @@ class Menu:
                 case "5":
                     SystemAdminFunctions.add_service_engineer(user)
                 case "6":
-                    print("update service engineer profile")
+                    SystemAdminFunctions.update_account_engineer(user)
                 case "7":
                     SystemAdminFunctions.delete_other_account(user)
                 case "8":
                     print("reset service engineer password")
                 case "9":
-                    print("update own account")
+                    SystemAdminFunctions.update_own_account(user)
                 case "10":
                     SystemAdminFunctions.delete_own_account(user)
                 case "11":
                     SystemAdminFunctions.create_backup(user)
                 case "12":
-                    print("restore backup")
+                    print("restore backup (with backup code)")
                 case "13":
                     SystemAdminFunctions.print_logs(user)
                 case "14":
@@ -184,7 +184,7 @@ class Menu:
                 case "3":
                     SystemAdminFunctions.add_service_engineer(user)
                 case "4":
-                    print("Update Service Engineer profile selected.")
+                    SystemAdminFunctions.update_account_engineer(user)
                 case "5":
                     SystemAdminFunctions.delete_other_account(user)
                 case "6":
@@ -204,13 +204,13 @@ class Menu:
                 case "13":
                     SuperAdminFunctions.add_system_admin(user)
                 case "14":
-                    print("Update System Administrator profile selected.")
+                    SystemAdminFunctions.update_account_sysadmin(user)
                 case "15":
                     print("Reset System Administrator password (temp password) selected.")
                 case "16":
                     SystemAdminFunctions.create_backup(user)
                 case "17":
-                    print("Restore backup selected.")
+                    print("Restore backup selected. (any backup)")
                 case "18":
                     print("Generate restore-code selected.")
                 case "19":

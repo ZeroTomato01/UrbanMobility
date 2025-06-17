@@ -15,6 +15,14 @@ class Validate:
         return New_user
     
     @staticmethod
+    def validate_updateuser(user: User, user_to_update: User):
+        user_to_update.role = Validate.validate_input("change role: ", username=user.username, custom_validator=Validate.is_valid_role)
+        user_to_update.username = Validate.validate_input("Change username: ", username=user.username, custom_validator=Validate.is_valid_username)
+        user_to_update.first_name = Validate.validate_input("Change first name: (2-20)", username=user.username, min_length=2, max_length=20)
+        user_to_update.last_name = Validate.validate_input("Change last name: (2-20)", username=user.username, min_length=2, max_length=20)
+        return user_to_update
+    
+    @staticmethod
     def Validate_addscooter(user: User, scooter: Scooter):
         scooter.serial_number = Validate.validate_input("Enter serial number (unique 10-17 alphanumeric): ", username=user.username, custom_validator=Validate.is_valid_serialnumber)
         scooter.brand = Validate.validate_input("Enter brand: (1-20)", username=user.username, min_length=1, max_length=20)
@@ -90,6 +98,13 @@ class Validate:
         scooter.last_maintenance_date = Validate.validate_input("Enter new last maintenance date (YYYY-MM-DD): ", username=user.username, custom_validator=lambda d: Validate.is_valid_last_maintenance_date(d, scooter=scooter))
         return scooter
     
+    @staticmethod
+    def is_valid_role(role):
+        valid_roles = ["System Administrator", "Service Engineer"]
+        if role in valid_roles:
+            return True
+        return False
+
     @staticmethod
     def is_valid_username(username):
         from Utils import Utility
@@ -236,7 +251,7 @@ class Validate:
         caller_name = inspect.stack()[1].function
         if not additional_info and validator_name:
             additional_info = f"{caller_name} -> {validator_name}"
-            
+
         while True:
             value = input(prompt).strip()
             if not value:

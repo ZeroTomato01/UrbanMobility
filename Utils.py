@@ -8,6 +8,7 @@ import os
 import zipfile
 import shutil
 import hashlib
+import copy
 
 class Utility:
     def __init__(self):
@@ -43,7 +44,7 @@ class Utility:
             conn.commit()
             conn.close()
             print("Scooter added successfully.")
-            Utility.log_activity(user.username, "Add scooter to DB", additional_info="Scooter added to DB succesful", suspicious_count = 0)
+            Utility.log_activity(user.username, "Add scooter to DB", additional_info=f"Scooter: {scooter.serial_number} added to DB", suspicious_count = 0)
         except sqlite3.Error as e:
             print("Error adding scooter to the database. Please check the input values.")
             print(f"SQLite error: {e}")
@@ -72,7 +73,7 @@ class Utility:
             conn.commit()
             conn.close()
             print("User added successfully.")
-            Utility.log_activity(user.username, "Add user to DB", additional_info="User added to DB succesful", suspicious_count = 0)
+            Utility.log_activity(user.username, "Add user to DB", additional_info=f"User: {new_user.username} added to DB", suspicious_count = 0)
         except sqlite3.Error as e:
             print("Error adding user to the database. Please check the input values.")
             print(f"SQLite error: {e}")
@@ -223,7 +224,7 @@ class Utility:
             return None
     
     @staticmethod
-    def fetch_searchuser(search_key):
+    def fetch_searchuser(search_key, role=None):
         encrypt = Utility.load_key()
         conn = sqlite3.connect('users.db')
         conn.row_factory = sqlite3.Row
@@ -237,6 +238,8 @@ class Utility:
         best_row = None
 
         for row in rows:
+            if role and row['role'].lower() != role.lower():
+                continue
             fields_to_search = [
                 str(row['role']),
                 str(encrypt.decrypt(row['username']).decode('utf-8')),
@@ -312,7 +315,7 @@ class Utility:
             conn.commit()
             conn.close()
             print("Scooter attributes updated successfully.")
-            Utility.log_activity(user.username, "Update scooter to DB", additional_info="Update scooter to DB succesful", suspicious_count = 0)
+            Utility.log_activity(user.username, "Update scooter to DB", additional_info=f"Update scooter {scooter.serial_number}", suspicious_count = 0)
         except sqlite3.Error as e:
             print("Error updating scooter in the database:", e)
             Utility.log_activity(user.username, "Update scooter to DB", additional_info=f"Update scooter to DB failed: {e}", suspicious_count = 3)
@@ -359,11 +362,60 @@ class Utility:
             conn.commit()
             conn.close()
             print("Scooter attributes updated successfully.")
-            Utility.log_activity(user.username, "Update scooter to DB", additional_info="Update scooter to DB succesful", suspicious_count = 0)
+            Utility.log_activity(user.username, "Update scooter to DB", additional_info=f"Update scooter {scooter.serial_number} to DB succesful", suspicious_count = 0)
         except sqlite3.Error as e:
             print("Error updating scooter in the database:", e)
             Utility.log_activity(user.username, "Update scooter to DB", additional_info=f"Update scooter to DB failed: {e}", suspicious_count = 3)
     
+    @staticmethod
+    def update_account(user: User, user_to_update):
+        user_to_update_old = copy.deepcopy(user_to_update) # if you don't use copy, it will change this variable as it only references the old one
+        user_to_update = Validate.validate_updateuser(user, user_to_update)
+        try:
+            encrypt = Utility.load_key()
+
+            conn = sqlite3.connect('users.db')
+            conn.row_factory = sqlite3.Row
+            c = conn.cursor()
+            c.execute("SELECT rowid, username FROM users")
+            rows = c.fetchall()
+            target_rowid = None
+            for row in rows:
+                decrypted_username = encrypt.decrypt(row['username']).decode('utf-8')
+                if decrypted_username == user_to_update_old.username:
+                    target_rowid = row['rowid']
+                    break
+
+            enc_username = encrypt.encrypt(user_to_update.username.encode('utf-8'))
+            enc_first_name = encrypt.encrypt(user_to_update.first_name.encode('utf-8'))
+            enc_last_name = encrypt.encrypt(user_to_update.last_name.encode('utf-8'))
+
+            if target_rowid is not None:
+                c.execute('''
+                    UPDATE users
+                    SET role = ?, username = ?, password = ?, first_name = ?, last_name = ?
+                    WHERE rowid = ?
+                ''', (
+                    user_to_update.role,
+                    enc_username,
+                    user_to_update.password,
+                    enc_first_name,
+                    enc_last_name,
+                    target_rowid
+                ))
+                conn.commit()
+                conn.close()
+                print("User updated successfully.")
+                Utility.log_activity(user.username, "Update user in DB", additional_info=f"User: {user_to_update.username} updated in DB", suspicious_count=0)
+            else:
+                conn.close()
+                print(f"User '{user_to_update.username}' not found.")
+                Utility.log_activity(user.username, "Update user in DB", additional_info=f"Update user failed: {user_to_update.username} not found", suspicious_count=3)
+        except sqlite3.Error as e:
+            print("Error updating user in the database. Please check the input values.")
+            print(f"SQLite error: {e}")
+            Utility.log_activity(user.username, "Update user in DB", additional_info=f"Update user failed: {e}", suspicious_count=3)
+            return
     
     @staticmethod
     def create_backup(user: User):
