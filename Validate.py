@@ -9,15 +9,15 @@ class Validate:
     def Validate_user(user: User):
         user.username = Validate.validate_input("Enter username: ", custom_validator=Validate.is_valid_username)
         user.password = Validate.validate_input("Enter password: ", custom_validator=Validate.is_valid_password)
-        user.first_name = Validate.validate_input("Enter first name: ", min_length=2, max_length=20)
-        user.last_name = Validate.validate_input("Enter last name: ", min_length=2, max_length=20)
+        user.first_name = Validate.validate_input("Enter first name: (2-20)", min_length=2, max_length=20)
+        user.last_name = Validate.validate_input("Enter last name: (2-20)", min_length=2, max_length=20)
         return user
     
     @staticmethod
-    def Validate_scooter(scooter: Scooter):
-        scooter.serial_number = Validate.validate_input("Enter serial number ( unique 10-17 alphanumeric): ", custom_validator=Validate.is_valid_serialnumber)
-        scooter.brand = Validate.validate_input("Enter brand: ", min_length=1, max_length=20)
-        scooter.model = Validate.validate_input("Enter model: ", min_length=1, max_length=20)
+    def Validate_scooter(scooter: Scooter, add=False):
+        scooter.serial_number = Validate.validate_input("Enter serial number (unique 10-17 alphanumeric): ", custom_validator=Validate.is_valid_serialnumber)
+        scooter.brand = Validate.validate_input("Enter brand: (1-20)", min_length=1, max_length=20)
+        scooter.model = Validate.validate_input("Enter model: (1-20)", min_length=1, max_length=20)
         scooter.top_speed = Validate.validate_input("Enter top speed (km/h): ", custom_validator=Validate.is_valid_topspeed)
         scooter.battery_capacity = Validate.validate_input("Enter battery capacity (Wh): ", custom_validator=Validate.is_valid_battery_capacity)
         scooter.soc = Validate.validate_input("Enter state of charge (0-100): ", custom_validator=Validate.is_valid_soc)
@@ -27,17 +27,20 @@ class Validate:
             if Validate.is_valid_target_soc(min_soc, max_soc):
                 scooter.target_range_soc = (min_soc, max_soc)
                 break
-            print("Invalid target SOC range. Try again.")
+            print("Invalid target range SOC. Ensure 0 <= min < max <= 100.")
         while True:
             latitude = Validate.validate_input("Enter latitude (51.85000 - 51.99000, 5 decimals): ")
             longitude = Validate.validate_input("Enter longitude (4.40000 - 4.60000, 5 decimals): ")
             if Validate.is_valid_location(latitude, longitude):
-                scooter.location = (float(latitude), float(longitude))
+                scooter.location = (latitude, longitude)
                 break
-            print("Invalid location. Try again.")
+            print("Invalid location. Ensure latitude is between 51.85000 and 51.99000, and longitude is between 4.40000 and 4.60000, both with 5 decimal places.")
         scooter.out_of_service = Validate.validate_input("Is the scooter out of service? (1 for true/0 for false): ", custom_validator=Validate.is_valid_out_of_service)
         scooter.mileage = Validate.validate_input("Enter mileage: ", custom_validator=Validate.is_valid_mileage)
-        scooter.last_maintenance_date = Validate.validate_input("Enter last maintenance date (YYYY-MM-DD): ", custom_validator=Validate.is_valid_last_maintenance_date)
+        if add:
+            scooter.last_maintenance_date = datetime.today().strftime("%Y-%m-%d")
+            return scooter
+        scooter.last_maintenance_date = Validate.validate_input("Enter last maintenance date (YYYY-MM-DD): ", custom_validator=lambda d: Validate.is_valid_last_maintenance_date(d, scooter=scooter))
         return scooter
 
     
@@ -46,7 +49,7 @@ class Validate:
         from Utils import Utility
         if not Utility.fetch_userinfo(username, check_username=True):
             return False  # Username exists
-        pattern = r"^[a-zA-Z_][a-zA-Z0-9_'.]{7,9}$"
+        pattern = r"^[a-zA-Z_][a-zA-Z0-9_'.]{8,10}$"
         return bool(re.fullmatch(pattern, username, re.IGNORECASE))
      
     @staticmethod
@@ -74,7 +77,7 @@ class Validate:
     
     @staticmethod
     def is_valid_serialnumber(serial_number):
-        if not re.fullmatch(r"[a-zA-Z0-9]{9,16}", serial_number):
+        if not re.fullmatch(r"[a-zA-Z0-9]{10,16}", serial_number):
             return False
         conn = sqlite3.connect('scooters.db')
         c = conn.cursor()
@@ -89,13 +92,15 @@ class Validate:
     def is_valid_topspeed(top_speed):
         if not re.fullmatch(r"\d{1,3}", str(top_speed)):
             return False
-        return True
+        value = int(top_speed)
+        return 1 <= value <= 200
 
     @staticmethod
     def is_valid_battery_capacity(battery_capacity):
         if not re.fullmatch(r"\d{3,4}", str(battery_capacity)):
             return False
-        return True
+        value = int(battery_capacity)
+        return 100 <= value <= 3000
 
     @staticmethod
     def is_valid_soc(soc):
@@ -123,20 +128,20 @@ class Validate:
         # Check latitude range and 5 decimal places
         if not (51.85000 <= lat <= 51.99000):
             return False
-        if not (round(lat, 5) == lat and len(str(lat).split('.')[-1]) == 5):
+        if not (4.40000 <= lon <= 4.60000):
             return False
 
         # Check longitude range and 5 decimal places
-        if not (4.40000 <= lon <= 4.60000):
+        if '.' not in str(latitude) or len(str(latitude).split('.')[-1]) != 5:
             return False
-        if not (round(lon, 5) == lon and len(str(lon).split('.')[-1]) == 5):
+        if '.' not in str(longitude) or len(str(longitude).split('.')[-1]) != 5:
             return False
 
         return True
     
     @staticmethod
     def is_valid_out_of_service(out_of_service):
-        if out_of_service == 0 or out_of_service == 1:
+        if int(out_of_service) == 0 or int(out_of_service) == 1:
             return True
         return False
     
@@ -144,12 +149,12 @@ class Validate:
     def is_valid_mileage(mileage):
         try:
             value = float(mileage)
-            return value >= 0
+            return value >= 0.0
         except ValueError:
             return False
     
     @staticmethod
-    def is_valid_last_maintenance_date(date_str):
+    def is_valid_last_maintenance_date(date_str, scooter=None):
         try:
             # Check format and parse date
             date_obj = datetime.strptime(date_str, "%Y-%m-%d")
@@ -160,7 +165,12 @@ class Validate:
         fifty_years_ago = today - timedelta(days=50*365.25)
 
         # Must be in the past and not more than 50 years ago
-        return fifty_years_ago <= date_obj < today
+        if not (fifty_years_ago <= date_obj < today):
+            return False
+        
+        if scooter and not date_obj >= datetime.strptime(scooter.in_service_date, "%Y-%m-%d"):
+            return False
+        return True
     
     @staticmethod
     def validate_input(
@@ -171,7 +181,7 @@ class Validate:
         custom_validator=None
     ):
         while True:
-            value = input(prompt)
+            value = input(prompt).strip()
             if not value:
                 print("Input cannot be empty.")
                 continue
@@ -181,8 +191,8 @@ class Validate:
             if not (min_length <= len(value) <= max_length):
                 print(f"Input must be between {min_length} and {max_length} characters.")
                 continue
-            if custom_validator and not custom_validator:
-                print("Input failed custom validation.")
+            if custom_validator and not custom_validator(value):
+                print("Input failed validation.")
                 continue
             return value
 

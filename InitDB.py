@@ -82,14 +82,8 @@ class InitDB:
                 soc str,
                 target_range_soc_min str,
                 target_range_soc_max str,
-                latitude REAL
-                    CHECK(latitude >= 51.85000 AND latitude <= 51.99000)
-                    CHECK(CAST(latitude * 100000 AS INTEGER) = latitude * 100000)
-                    CHECK(CAST(latitude * 10000 AS INTEGER) != latitude * 10000),
-                longitude REAL
-                    CHECK(longitude >= 4.40000 AND longitude <= 4.60000)
-                    CHECK(CAST(longitude * 100000 AS INTEGER) = longitude * 100000)
-                    CHECK(CAST(longitude * 10000 AS INTEGER) != longitude * 10000),
+                latitude TEXT NOT NULL,
+                longitude TEXT NOT NULL,
                 out_of_service INTEGER CHECK(out_of_service IN (0, 1)) DEFAULT 0,
                 mileage REAL CHECK(mileage >= 0),
                 last_maintenance_date TEXT,

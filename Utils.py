@@ -42,8 +42,10 @@ class Utility:
             ))
             conn.commit()
             conn.close()
-        except sqlite3.Error:
+            print("Scooter added successfully.")
+        except sqlite3.Error as e:
             print("Error adding scooter to the database. Please check the input values.")
+            print(f"SQLite error: {e}")
             return
     
     @staticmethod
@@ -67,8 +69,10 @@ class Utility:
             ))
             conn.commit()
             conn.close()
-        except sqlite3.Error:
+            print("User added successfully.")
+        except sqlite3.Error as e:
             print("Error adding user to the database. Please check the input values.")
+            print(f"SQLite error: {e}")
             return
 
     @staticmethod

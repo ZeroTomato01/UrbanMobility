@@ -129,7 +129,7 @@ class Menu:
                 case "15":
                     print("Update Traveller selected.")
                 case "16":
-                    print("Add Scooter selected.")
+                    add_scooter()
                 case "17":
                     print("Update Scooter selected.")
                 case "18":
@@ -267,5 +267,5 @@ def add_service_engineer():
 def add_scooter():
     print("Add Scooter selected.")
     new_scooter = Scooter()
-    new_scooter = Validate.Validate_scooter(new_scooter)
+    new_scooter = Validate.Validate_scooter(new_scooter, add=True)
     Utility.Add_scooter(new_scooter)
