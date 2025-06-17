@@ -1,3 +1,4 @@
+import sqlite3
 from Models.User import User
 from Models.Scooter import Scooter
 from Utils import Utility
@@ -46,7 +47,17 @@ class SystemAdminFunctions:
 
     @staticmethod
     def list_users_and_roles(user):
-        return
+        encrypt = Utility.load_key()
+        conn = sqlite3.connect('users.db')
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute("SELECT rowid, * FROM users")
+        rows = c.fetchall()
+        conn.close()
+        for row in rows:
+            decrypted_username = encrypt.decrypt(row['username']).decode('utf-8')
+            decrypted_role = row['role']
+            print(f"- {decrypted_username}: {decrypted_role}")
 
     @staticmethod
     def update_service_engineer_profile(user):
