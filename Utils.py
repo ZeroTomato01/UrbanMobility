@@ -76,7 +76,10 @@ class Utility:
             return
 
     @staticmethod
-    def log_activity(username, activity, additional_info="", suspicious=False):
+    def log_activity(username, activity, additional_info="", suspicious_count=0):
+        suspicious=False
+        if suspicious_count > 1:
+            suspicious = True
         encrypt = Utility.load_key()
         enc_username = encrypt.encrypt(username.encode('utf-8'))
         enc_activity = encrypt.encrypt(activity.encode('utf-8'))
@@ -94,6 +97,29 @@ class Utility:
             1 if suspicious else 0, # 1 for true, 0 for false
             1  # unread by default
         ))
+        conn.commit()
+        conn.close()
+    
+    @staticmethod
+    def print_logs():
+        encrypt = Utility.load_key()
+        conn = sqlite3.connect('logs.db')
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        # Order by id DESC for latest log on top
+        c.execute("SELECT * FROM logs ORDER BY id DESC")
+        logs = c.fetchall()
+
+        print("No. | Date       | Time     | Username      | Activity Description                | Additional Info         | Suspicious")
+        print("-" * 100)
+        for log in logs:
+            username = encrypt.decrypt(log['username']).decode('utf-8')
+            activity = encrypt.decrypt(log['activity']).decode('utf-8')
+            additional_info = encrypt.decrypt(log['additional_info']).decode('utf-8') if log['additional_info'] else ""
+            print(f"{log['id']:>3} | {log['date']} | {log['time']} | {username:<13} | {activity:<35} | {additional_info:<20} | {'Yes' if log['suspicious'] else 'No'}")
+
+        # Set all unread logs to 0
+        c.execute("UPDATE logs SET unread = 0 WHERE unread != 0")
         conn.commit()
         conn.close()
 

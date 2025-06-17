@@ -67,24 +67,23 @@ class Menu:
     def system_admin_menu(user: User):
         menu_options = [
             ("1", "Update own password"),
-            ("2", "Update scooter attributes"),
-            ("3", "Search/retrieve scooter info"),
-            ("4", "List users and roles"),
-            ("5", "Add Service Engineer"),
-            ("6", "Update Service Engineer profile"),
-            ("7", "Delete Service Engineer"),
-            ("8", "Reset Service Engineer password (temp password)"),
-            ("9", "update own account"),
-            ("10", "delete own account"),
-            ("11", "Create backup"),
-            ("12", "Restore backup (with restore-code from SA)"),
-            ("13", "Print logs"),
-            ("14", "Add Traveller"),
-            ("15", "Update Traveller"),
-            ("16", "Add Scooter"),
-            ("17", "Update Scooter"),
-            ("18", "Delete Scooter"),
-            ("19", "Search/retrieve Traveller info"),
+            ("2", "Search/retrieve scooter + update"),
+            ("3", "List users and roles"),
+            ("4", "Add Service Engineer"),
+            ("5", "Update Service Engineer profile"),
+            ("6", "Delete Service Engineer"),
+            ("7", "Reset Service Engineer password (temp password)"),
+            ("8", "update own account"),
+            ("9", "delete own account"),
+            ("10", "Create backup"),
+            ("11", "Restore backup (with restore-code from SA)"),
+            ("12", "Print logs"),
+            ("13", "Add Traveller"),
+            ("14", "Update Traveller"),
+            ("15", "Add Scooter"),
+            ("16", "Update Scooter"),
+            ("17", "Delete Scooter"),
+            ("18", "Search/retrieve Traveller info"),
             ("0", "Logout"),
         ]
         while True:
@@ -100,41 +99,40 @@ class Menu:
                     # log update password event
                     update_password(user)
                 case "2":
-                    print("Update scooter attributes selected.")
+                    # log search/retrieve scooter info event + update
+                    search_print_update_scooter(user)
                 case "3":
-                    print("Search/retrieve scooter info selected.")
-                case "4":
                     print("List users and roles selected.")
-                case "5":
+                case "4":
                     # log add service engineer event
                     add_service_engineer()
-                case "6":
+                case "5":
                     print("Update Service Engineer profile selected.")
-                case "7":
+                case "6":
                     print("Delete Service Engineer selected.")
-                case "8":
+                case "7":
                     print("Reset Service Engineer password (temp password) selected.")
-                case "9":
+                case "8":
                     print("Update own account selected.")
-                case "10":
+                case "9":
                     print("Delete own account selected.")
-                case "11":
+                case "10":
                     print("Create backup selected.")
-                case "12":
+                case "11":
                     print("Restore backup (with restore-code from SA) selected.")
-                case "13":
+                case "12":
                     print("Print logs selected.")
-                case "14":
+                case "13":
                     print("Add Traveller selected.")
-                case "15":
+                case "14":
                     print("Update Traveller selected.")
-                case "16":
+                case "15":
                     add_scooter()
-                case "17":
+                case "16":
                     print("Update Scooter selected.")
-                case "18":
+                case "17":
                     print("Delete Scooter selected.")
-                case "19":
+                case "18":
                     print("Search/retrieve Traveller info selected.")
                 case _:
                     print("Invalid option. Please try again.")
@@ -185,13 +183,14 @@ class Menu:
                 case "3":
                     print("List users and roles selected.")
                 case "4":
+                    # log the add service engineer event
                     add_service_engineer()
                 case "5":
                     print("Update Service Engineer profile selected.")
                 case "6":
                     print("Delete Service Engineer selected.")
                 case "7":
-                    print("Reset Service Engineer password selected.")
+                    print("Reset Service Engineer password (temp password) selected.")
                 case "8":
                     print("View logs selected.")
                 case "9":
@@ -201,6 +200,7 @@ class Menu:
                 case "11":
                     print("Delete Traveller selected.")
                 case "12":
+                    # log the add scooter event
                     add_scooter()
                 case "13":
                     print("Update Scooter selected.")
@@ -209,13 +209,14 @@ class Menu:
                 case "15":
                     print("Search/retrieve Traveller info selected.")
                 case "16":
-                    print("Add System Administrator selected.")
+                    # log the add system administrator event
+                    add_system_admin()
                 case "17":
                     print("Update System Administrator profile selected.")
                 case "18":
                     print("Delete System Administrator selected.")
                 case "19":
-                    print("Reset System Administrator password selected.")
+                    print("Reset System Administrator password (temp password) selected.")
                 case "20":
                     print("Backup system selected.")
                 case "21":
@@ -261,6 +262,13 @@ def search_print_update_scooter(user: User):
 def add_service_engineer():
     print("Add Service Engineer selected.")
     new_user = User(role="Service Engineer")
+    new_user = Validate.Validate_user(new_user)
+    Utility.Add_user(new_user)
+
+@staticmethod
+def add_system_admin():
+    print("Add System Administrator selected.")
+    new_user = User(role="System Administrator")
     new_user = Validate.Validate_user(new_user)
     Utility.Add_user(new_user)
 
