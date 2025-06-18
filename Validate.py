@@ -1,9 +1,17 @@
+
 import sqlite3
 import inspect
 from Models.Scooter import Scooter
+from Models.Traveller import Traveller
 from Models.User import User
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 import re
+
+#email is a standard python library, but might have to check if it's allowed
+from email.utils import parseaddr 
+from email.errors import HeaderParseError
+from email.headerregistry import Address
+
 
 class Validate:
     @staticmethod
@@ -48,6 +56,28 @@ class Validate:
         scooter.mileage = Validate.validate_input("Enter mileage: ", username=user.username, custom_validator=Validate.is_valid_mileage)
         scooter.last_maintenance_date = datetime.today().strftime("%Y-%m-%d")
         return scooter
+    
+    def Validate_addtraveller(user: User, traveller: Traveller):
+        traveller.first_name = Validate.validate_input("Enter first name (2-20): ", username=user.username, min_length=2, max_length=20)
+        traveller.last_name = Validate.validate_input("Enter last name (2-20): ", username=user.username, min_length=2, max_length=20)
+        traveller.birthday = Validate.validate_input("Enter birth date (YYYY-MM-DD): ", username=user.username, custom_validator=Validate.is_valid_birthdate, min_length=10, max_length=10)
+        traveller.gender = Validate.validate_input("Enter gender (male/female): ", username=user.username, custom_validator=Validate.is_valid_gender, min_length=4, max_length=6)
+        traveller.street_name = Validate.validate_input("Enter street name: ", username=user.username, min_length=1, max_length=100)
+        traveller.house_number = Validate.validate_input("Enter house number with unit/apartment number: ", username=user.username, min_length=1, max_length=20) #20 is likely too much but there can be lengthy designators
+        traveller.zip_code = Validate.validate_input("Enter dutch zipcode (DDDDXX): ", username=user.username, custom_validator=Validate.is_valid_zip_code, min_length=6, max_length=7) #regex handles optional space so allow max 7
+        
+        cities = ["Rotterdam", "Amsterdam", "Den Haag", "Utrecht", "Delft", "Eindhoven", "Groningen", "Maastricht", "Zwolle", "Nijmegen"]
+        #The system should generate a list of 10 predefined city names of your choice.
+        print("Available cities:")
+        for i in range(1, 10):
+            print(f"{i}. {cities[i-1]}")
+
+        traveller.city = cities[int(Validate.validate_input("Select a city: ", custom_validator=Validate.is_digit,  min_length=1, max_length=2, )) - 1]
+        traveller.email_address = Validate.validate_input("Enter email address: ", username=user.username, custom_validator=Validate.is_valid_email, min_length=3, max_length=254)
+        traveller.mobile_phone = "+31-6-" + Validate.validate_input("Enter phone number: +31-6-", custom_validator=Validate.is_digit, min_length=8, max_length=8)
+        traveller.driving_license_number = Validate.validate_input("Enter driving license number: ", custom_validator=Validate.is_valid_driving_license_number, min_length=9, max_length=9)
+        
+        return traveller
     
     @staticmethod
     def validate_updatescooter_engineer(user: User, scooter: Scooter):
@@ -232,6 +262,53 @@ class Validate:
         if scooter and not date_obj >= datetime.strptime(scooter.in_service_date, "%Y-%m-%d"):
             return False
         return True
+    
+    @staticmethod
+    def is_valid_birthdate(date_str):
+        try:
+            # Check format and parse date
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+        except ValueError:
+            return False
+        
+        today = datetime.today()
+
+        if not (date_obj < today):
+            return False
+        return True
+    
+    @staticmethod
+    def is_valid_gender(gender_char):
+        if gender_char != "male" and gender_char != "female":
+            return False
+        return True
+    
+    @staticmethod
+    def is_valid_zip_code(zip_code_str):
+        pattern = r'^\d{4} ?[A-Z]{2}$'
+        return bool(re.fullmatch(pattern, zip_code_str))
+    
+    @staticmethod
+    def is_valid_email(email_str):
+        pattern = r'^(?=.{6,254}$)[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,253}\.[A-Za-z]{2,}$'
+        if not bool(re.fullmatch(pattern, email_str)):
+            return False
+        
+        try: #extra validation against RFC 5322 syntax rules.
+            addr = Address(addr_spec=email_str)
+            return True
+        except HeaderParseError:
+            return False
+        
+    @staticmethod
+    def is_digit(input_str: str):
+        return input_str.isdigit()
+    
+    @staticmethod
+    def is_valid_driving_license_number(driving_licence_number_str):
+        pattern = r'^(?:[A-Z]{2}\d{7}|[A-Z]{1}\d{8})$'
+        return bool(re.fullmatch(pattern, driving_licence_number_str))
+
     
     @staticmethod
     def validate_input(

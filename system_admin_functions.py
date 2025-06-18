@@ -1,4 +1,5 @@
 import sqlite3
+from Models.Traveller import Traveller
 from Models.User import User
 from Models.Scooter import Scooter
 from Utils import Utility
@@ -165,4 +166,10 @@ class SystemAdminFunctions:
             if edit == 'y':
                 Utility.delete_scooterfromDB(user, scooter)
             return
-
+        
+    @staticmethod
+    def add_traveller(user:User):
+        print("Add Traveller selected.")
+        new_traveller = Traveller()
+        new_traveller = Validate.Validate_addtraveller(user, new_traveller)
+        Utility.Add_traveller(user, new_traveller)

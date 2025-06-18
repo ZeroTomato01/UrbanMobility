@@ -73,25 +73,25 @@ class Menu:
     @staticmethod
     def system_admin_menu(user: User):
         menu_options = [
-            ("1", "Update own password"),
-            ("2", "Search/retrieve scooter + update"),
-            ("3", "Print profile info"),
-            ("4", "List users and roles"),
-            ("5", "Add Service Engineer"),
-            ("6", "Update Service Engineer profile"),
-            ("7", "Delete Service Engineer"),
-            ("8", "Reset Service Engineer password (temp password)"),
-            ("9", "update own account"),
-            ("10", "delete own account"),
-            ("11", "Create backup"),
-            ("12", "Restore backup (with restore-code from SA)"),
-            ("13", "Print logs"),
-            ("14", "Add Traveller"),
-            ("15", "Delete Traveller"),
-            ("16", "Add Scooter"),
-            ("17", "Delete Scooter"),
-            ("18", "Search/retrieve Traveller info + update"),
-            ("0", "Logout"),
+            ("1", "Update own password"), #1 Users
+            ("2", "Search/retrieve scooter + update"), #2 Scooter
+            ("3", "Print profile info"),  #Users
+            ("4", "List users and roles"), #Users
+            ("5", "Add Service Engineer"), #Users
+            ("6", "Update Service Engineer profile"), #Users
+            ("7", "Delete Service Engineer"), #Users
+            ("8", "Reset Service Engineer password (temp password)"), #Users
+            ("9", "update own account"), #Users
+            ("10", "delete own account"), #Users
+            ("11", "Create backup"), #3 Backup
+            ("12", "Restore backup (with restore-code from SA)"), #Backup
+            ("13", "Print logs"), #4 Logs
+            ("14", "Add Traveller"), #5 Traveller
+            ("15", "Delete Traveller"), #Traveller
+            ("16", "Add Scooter"), #Scooter
+            ("17", "Delete Scooter"), #Scooter
+            ("18", "Search/retrieve Traveller info + update"), #Traveller
+            ("0", "Logout"), #6 Logout
         ]
         suspicious_count = 0
         while True:
@@ -130,7 +130,7 @@ class Menu:
                 case "13":
                     SystemAdminFunctions.print_logs(user)
                 case "14":
-                    print("add traveller")
+                    SystemAdminFunctions.add_traveller(user)
                 case "15":
                     print("Delete traveller")
                 case "16":
@@ -147,26 +147,26 @@ class Menu:
     @staticmethod
     def super_admin_menu(user: User):
         menu_options = [
-            ("1", "Search/retrieve scooter info + update"),
-            ("2", "List users and roles"),
-            ("3", "Add Service Engineer"),
-            ("4", "Update Service Engineer profile"),
-            ("5", "Delete other user (Engineer or sys admin)"),
-            ("6", "Reset Service Engineer password (temp password)"),
-            ("7", "View logs"),
-            ("8", "Add Traveller"),
-            ("9", "Delete Traveller"),
-            ("10", "Add Scooter"),
-            ("11", "Delete Scooter"),
-            ("12", "Search/retrieve Traveller info + update"),
-            ("13", "Add System Administrator"),
-            ("14", "Update System Administrator profile"),
-            ("15", "Reset System Administrator password (temp password)"),
-            ("16", "Backup system"),
-            ("17", "Restore backup"),
-            ("18", "Generate restore-code"),
-            ("19", "Revoke restore-code"),
-            ("0", "Logout"),
+            ("1", "Search/retrieve scooter info + update"), #Scooter
+            ("2", "List users and roles"), #Users
+            ("3", "Add Service Engineer"), #Users
+            ("4", "Update Service Engineer profile"), #Users
+            ("5", "Delete other user (Engineer or sys admin)"), #Users
+            ("6", "Reset Service Engineer password (temp password)"), #Users
+            ("7", "View logs"), #Logs
+            ("8", "Add Traveller"), #Travellers
+            ("9", "Delete Traveller"), #Travellers
+            ("10", "Add Scooter"), #Scooters
+            ("11", "Delete Scooter"), #Scooters
+            ("12", "Search/retrieve Traveller info + update"), #Travellers
+            ("13", "Add System Administrator"), #Users
+            ("14", "Update System Administrator profile"), #Users
+            ("15", "Reset System Administrator password (temp password)"), #Users
+            ("16", "Backup system"), #Backup, super_admin moet deze toch niet kunnen?
+            ("17", "Restore backup"), #Backup
+            ("18", "Generate restore-code"), #Backup
+            ("19", "Revoke restore-code"), #Backup
+            ("0", "Logout"), #Logout
         ]
 
         suspicious_count = 0

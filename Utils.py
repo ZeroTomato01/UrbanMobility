@@ -1,4 +1,5 @@
 import sqlite3
+from Models.Traveller import Traveller
 from Models.Scooter import Scooter
 from Models.User import User
 from cryptography.fernet import Fernet
@@ -79,6 +80,40 @@ class Utility:
             print(f"SQLite error: {e}")
             Utility.log_activity(user.username, "Add user to DB", additional_info=f"Add user to DB failed: {e}", suspicious_count = 3)
             return
+
+    @staticmethod
+    def Add_traveller(user: User, traveller: Traveller):
+        try:
+            conn = sqlite3.connect('traveller.db')
+            c = conn.cursor()
+            c.execute('''
+                INSERT INTO travellers (
+                    first_name, last_name, birthday, gender, street_name, house_number,
+                    zip_code, city, email_address, mobile_phone, driving_license_number)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                traveller.first_name,
+                traveller.last_name,
+                traveller.birthday,
+                traveller.gender,
+                traveller.street_name,
+                traveller.house_number,
+                traveller.zip_code,
+                traveller.city,
+                traveller.email_address,
+                traveller.mobile_phone,
+                traveller.driving_license_number,
+            ))
+            conn.commit()
+            conn.close()
+            print("Traveller added successfully.")
+            Utility.log_activity(user.username, "Add traveller to DB", additional_info=f"Traveller: {traveller.first_name} {traveller.last_name}, {traveller.zip_code} {traveller.city} added to DB", suspicious_count = 0)
+        except sqlite3.Error as e:
+            print("Error adding traveller to the database. Please check the input values.")
+            print(f"SQLite error: {e}")
+            Utility.log_activity(user.username, "Add traveller to DB", additional_info=f"Add traveller to DB failed: {e}", suspicious_count = 3)
+            return
+
 
     @staticmethod
     def log_activity(username, activity, additional_info="", suspicious_count = 0):
