@@ -30,9 +30,9 @@ class Menu:
                 username = ''
                 continue
 
-            if user.role == "Service Engineer" and user.temp_password:
+            if user.role in ["Service Engineer", "System Administrator"] and user.temp_password:
                 # Ask for temp password first
-                print(f"Temporary password required for Service Engineer login: \"{user.temp_password}\"")
+                print(f"Temporary password required for login: \"{user.temp_password}\"")
                 entered_temp_pass = input("Enter temporary password: ").strip()
 
                 # user.temp_password is already decrypted, so no need to decrypt again
@@ -250,7 +250,7 @@ class Menu:
                 case "14":
                     SystemAdminFunctions.update_account_sysadmin(user)
                 case "15":
-                    print("Reset System Administrator password (temp password) selected.")
+                    SuperAdminFunctions.assign_temp_password(user)
                 case "16":
                     SystemAdminFunctions.create_backup(user)
                 case "17":

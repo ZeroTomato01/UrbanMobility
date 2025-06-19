@@ -59,3 +59,22 @@ class SuperAdminFunctions:
             return
 
         Utility.revoke_backup_code(user, target_user)
+
+        
+    @staticmethod
+    def assign_temp_password(admin_user: User):
+        if admin_user.role not in ["Super Administrator"]:
+            print("Access denied: only Super Administrators can assign temp passwords.")
+            return
+
+        target_username = input("Enter the System Admin username to reset password for: ").strip()
+        system_admin = Utility.fetch_searchuser(target_username, role="System Administrator")
+
+        if not system_admin:
+            print(f"No System Administrator user found matching '{target_username}'.")
+            return
+
+        temp_password = Utility.generate_temp_password()
+
+        # Call the utility method to update temp_password in DB
+        Utility.update_temp_password(admin_user, target_username, temp_password)

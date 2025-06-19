@@ -945,7 +945,7 @@ class Utility:
     @staticmethod
     def update_temp_password(admin_user: User, target_username: str, temp_password: str | None):
         """
-        Assign or clear a temporary password for a Service Engineer.
+        Assign or clear a temporary password.
         If temp_password is None, the field is cleared in the database.
         """
         try:
@@ -954,14 +954,15 @@ class Utility:
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
 
-            # Fetch all users and find the matching Service Engineer by decrypted username
+            # Fetch all users and find the matching user by decrypted username
             c.execute("SELECT rowid, username, role FROM users")
             rows = c.fetchall()
 
             target_rowid = None
             for row in rows:
                 decrypted_username = encrypt.decrypt(row['username']).decode('utf-8')
-                if decrypted_username == target_username and row['role'] == "Service Engineer":
+                if decrypted_username == target_username and row['role'] in ["Service Engineer", "System Administrator"]:
+
                     target_rowid = row['rowid']
                     break
 
@@ -993,11 +994,11 @@ class Utility:
                 )
             else:
                 conn.close()
-                print(f"Service Engineer user '{target_username}' not found.")
+                print(f"User '{target_username}' not found.")
                 Utility.log_activity(
                     admin_user.username,
                     "Assign temp password failed",
-                    additional_info=f"User not found or not a Service Engineer: {target_username}",
+                    additional_info=f"User not found or not a Service Engineer/System Administrator: {target_username}",
                     suspicious_count=3
                 )
         except sqlite3.Error as e:
