@@ -254,7 +254,7 @@ class Menu:
                 case "16":
                     SystemAdminFunctions.create_backup(user)
                 case "17":
-                    print("Please generate a restore code first. Then you can let a sytem admin restore a backup.")
+                    SuperAdminFunctions.restore_backup_from_menu(user)
                 case "18":
                     SuperAdminFunctions.generate_restoreCode(user)
                 case "19":

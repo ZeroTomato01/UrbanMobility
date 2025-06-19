@@ -2,6 +2,7 @@ from Models.User import User
 from Models.Scooter import Scooter
 from Utils import Utility
 from Validate import Validate
+import os
 
 
 class SuperAdminFunctions:
@@ -78,3 +79,56 @@ class SuperAdminFunctions:
 
         # Call the utility method to update temp_password in DB
         Utility.update_temp_password(admin_user, target_username, temp_password)
+
+
+
+    @staticmethod
+    def restore_backup_from_menu(admin_user: User):
+        if admin_user.role != "Super Administrator":
+            print("Access denied: only Super Administrators can restore backups.")
+            return
+
+        backup_dir = "backups"
+        if not os.path.isdir(backup_dir):
+            print("No backup directory found.")
+            return
+
+        backups = [f for f in os.listdir(backup_dir) if f.endswith(".zip")]
+        if not backups:
+            print("No backups found in the /backups folder.")
+            return
+
+        print("=== Available Backups ===")
+        for idx, backup_name in enumerate(backups, start=1):
+            print(f"{idx}. {backup_name}")
+
+        try:
+            choice = int(input("Enter the number of the backup to restore: ").strip())
+            if choice < 1 or choice > len(backups):
+                print("Invalid selection.")
+                return
+        except ValueError:
+            print("Invalid input. Please enter a number.")
+            return
+
+        selected_backup = backups[choice - 1]
+        backup_path = os.path.join(backup_dir, selected_backup)
+
+        # Restore the selected backup
+        try:
+            Utility.restore_backup(backup_path)
+            print(f"Backup '{selected_backup}' has been successfully restored.")
+            Utility.log_activity(
+                admin_user.username,
+                "Restore backup",
+                additional_info=f"Restored backup: {selected_backup}",
+                suspicious_count=0
+            )
+        except Exception as e:
+            print(f"Failed to restore backup: {e}")
+            Utility.log_activity(
+                admin_user.username,
+                "Restore backup failed",
+                additional_info=str(e),
+                suspicious_count=3
+            )
