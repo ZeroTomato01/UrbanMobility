@@ -138,7 +138,7 @@ class Menu:
                 case "17":
                     SystemAdminFunctions.delete_scooter(user)
                 case "18":
-                    print("search traveller info + update")
+                    SystemAdminFunctions.update_traveller(user)
                 case _:
                     print("Invalid option. Please try again.")
                     suspicious_count += 1
@@ -197,13 +197,13 @@ class Menu:
                 case "8":
                     SystemAdminFunctions.add_traveller(user)
                 case "9":
-                    print("Delete Traveller selected.")
+                    SystemAdminFunctions.delete_traveller(user)
                 case "10":
                     SystemAdminFunctions.add_scooter(user)
                 case "11":
                     SystemAdminFunctions.delete_scooter(user)
                 case "12":
-                    print("Search/retrieve Traveller info + update selected.")
+                    SystemAdminFunctions.update_traveller(user)
                 case "13":
                     SuperAdminFunctions.add_system_admin(user)
                 case "14":

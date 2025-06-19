@@ -113,6 +113,24 @@ class SystemAdminFunctions:
             if update == 'y':
                 Utility.update_account(user, user)
             return
+        
+    @staticmethod
+    def update_traveller(user: User):
+        print("Update traveller selected")
+        while True:
+            keyword = input("Enter user info to search: ").strip()
+            update_traveller = Utility.fetch_search_traveller(keyword)
+            if not update_traveller:
+                print("No user traveller with that info.")
+                end_search = input("end search? (Y/N)").lower()
+                if end_search == 'y':
+                    return
+                continue
+            Utility.print_travelerinfo(update_traveller)
+            update = input("Update traveller? (Y/N)").lower()
+            if update == 'y':
+                Utility.update_traveller(user, update_traveller)
+            return
 
     @staticmethod
     def print_logs(user: User):

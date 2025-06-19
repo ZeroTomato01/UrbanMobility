@@ -3,7 +3,7 @@ from Models.Traveller import Traveller
 from Models.Scooter import Scooter
 from Models.User import User
 from cryptography.fernet import Fernet
-from datetime import datetime
+from datetime import date, datetime
 from Validate import Validate
 import os
 import zipfile
@@ -337,7 +337,8 @@ class Utility:
                 
                 str(encrypt.decrypt(row['first_name']).decode('utf-8') if row['first_name'] else row['first_name']),
                 str(encrypt.decrypt(row['last_name']).decode('utf-8') if row['last_name'] else row['last_name']),
-                str(encrypt.decrypt(row['birthday']).decode('utf-8') if row['birthday'] else row['birthday']),
+                str(datetime.strptime(encrypt.decrypt(row['birthday']).decode('utf-8'), "%Y-%m-%d").date())
+                if row['birthday'] else '',
                 str(encrypt.decrypt(row['gender']).decode('utf-8') if row['gender'] else row['gender']),
                 str(encrypt.decrypt(row['street_name']).decode('utf-8') if row['street_name'] else row['street_name']),
                 str(encrypt.decrypt(row['house_number']).decode('utf-8') if row['house_number'] else row['house_number']),
@@ -357,7 +358,7 @@ class Utility:
             traveller = Traveller(
                 first_name=encrypt.decrypt(best_row['first_name']).decode('utf-8') if best_row['first_name'] else "",
                 last_name=encrypt.decrypt(best_row['last_name']).decode('utf-8') if best_row['last_name'] else "",
-                birthday=encrypt.decrypt(best_row['birthday']).decode('utf-8') if best_row['birthday'] else "",
+                birthday=datetime.strptime(str(encrypt.decrypt(row['birthday']).decode('utf-8')), "%Y-%m-%d").date()if best_row['birthday'] else None,
                 gender=encrypt.decrypt(best_row['gender']).decode('utf-8') if best_row['gender'] else "",
                 street_name=encrypt.decrypt(best_row['street_name']).decode('utf-8') if best_row['street_name'] else "",
                 house_number=encrypt.decrypt(best_row['house_number']).decode('utf-8') if best_row['house_number'] else "",
@@ -522,6 +523,83 @@ class Utility:
             Utility.log_activity(user.username, "Update user in DB", additional_info=f"Update user failed: {e}", suspicious_count=3)
             return
     
+
+    @staticmethod
+    def update_traveller(user: User, traveller: Traveller):
+        
+        try:
+            traveller_old = copy.deepcopy(traveller)
+            traveller = Validate.Validate_addtraveller(user, traveller)
+            encrypt = Utility.load_key()
+
+            enc_first_name_old = encrypt.encrypt(traveller_old.first_name.encode('utf-8'))
+            enc_last_name_old = encrypt.encrypt(traveller_old.last_name.encode('utf-8'))
+            enc_birthday_old = encrypt.encrypt(traveller_old.birthday.isoformat().encode('utf-8'))
+            enc_zip_code_old = encrypt.encrypt(traveller_old.zip_code.encode('utf-8'))
+            enc_email_address_old = encrypt.encrypt(traveller_old.email_address.encode('utf-8'))
+
+            enc_first_name = encrypt.encrypt(traveller.first_name.encode('utf-8'))
+            enc_last_name = encrypt.encrypt(traveller.last_name.encode('utf-8'))
+            enc_birthday = encrypt.encrypt(traveller.birthday.isoformat().encode('utf-8'))
+            enc_gender = encrypt.encrypt(traveller.gender.encode('utf-8'))
+            enc_street_name = encrypt.encrypt(traveller.street_name.encode('utf-8'))
+            enc_house_number = encrypt.encrypt(traveller.house_number.encode('utf-8'))
+            enc_zip_code = encrypt.encrypt(traveller.zip_code.encode('utf-8'))
+            enc_city = encrypt.encrypt(traveller.city.encode('utf-8'))
+            enc_email_address = encrypt.encrypt(traveller.email_address.encode('utf-8'))
+            enc_mobile_phone = encrypt.encrypt(traveller.mobile_phone.encode('utf-8'))
+            enc_driving_license_number = encrypt.encrypt(traveller.driving_license_number.encode('utf-8'))
+
+
+            conn = sqlite3.connect('travellers.db')
+            c = conn.cursor()
+            c.execute('''
+                UPDATE travellers SET
+                    first_name = ?,
+                    last_name = ?,
+                    birthday = ?,
+                    gender = ?,
+                    street_name = ?,
+                    house_number = ?,
+                    zip_code = ?,
+                    city = ?,
+                    email_address = ?,
+                    mobile_phone = ?,
+                    driving_license_number = ?
+                WHERE first_name = ?
+                    AND last_name = ?
+                    AND birthday = ?
+                    AND zip_code = ?
+                    AND email_address = ?
+            ''', (
+                enc_first_name,
+                enc_last_name,
+                enc_birthday,
+                enc_gender,
+                enc_street_name,
+                enc_house_number,
+                enc_zip_code,
+                enc_city,
+                enc_email_address,
+                enc_mobile_phone,
+                enc_driving_license_number,
+                enc_first_name_old,  # WHERE clause starts here
+                enc_last_name_old,
+                enc_birthday_old,
+                enc_zip_code_old,
+                enc_email_address_old
+            ))
+            conn.commit()
+            conn.close()
+            print(f"traveller attributes updated successfully to {traveller.first_name} {traveller.last_name}")
+            print("traveller attributes updated successfully.")
+            Utility.log_activity(user.username, "Update traveller to DB", 
+                                 additional_info=f"Update original traveller {traveller_old.first_name} {traveller_old.last_name}, {traveller_old.birthday}, {traveller_old.zip_code} to DB succesful", suspicious_count = 0)
+        except sqlite3.Error as e:
+            print("Error updating traveller in the database:", e)
+            Utility.log_activity(user.username, f"Update original traveller {traveller_old.first_name} {traveller_old.last_name}, {traveller_old.birthday}, {traveller_old.zip_code} to DB", additional_info=f"Update original traveller {traveller_old.first_name} {traveller_old.last_name}, {traveller_old.birthday}, {traveller_old.zip_code} to DB failed: {e}", suspicious_count = 3)
+
+
     @staticmethod
     def create_backup(user: User):
         try:
@@ -608,7 +686,7 @@ class Utility:
         conn = sqlite3.connect('travellers.db')
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
-        c.execute("SELECT ROWID, first_name, last_name, birthday, zip_code FROM travellers")
+        c.execute("SELECT rowid, first_name, last_name, birthday, zip_code FROM travellers")
         rows = c.fetchall()
         for row in rows:
             print(row.keys())
