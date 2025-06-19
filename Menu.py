@@ -4,6 +4,8 @@ from Utils import Utility
 from system_admin_functions import SystemAdminFunctions
 from super_admin_functions import SuperAdminFunctions
 from service_engineer_functions import ServiceEngineerFunctions
+import sqlite3
+from Validate import Validate
 
 class Menu:
     def __init__(self):
@@ -14,10 +16,11 @@ class Menu:
         print("=== Urban Mobility Backend System ===")
         username = ''
         suspicious_count = 0
+        encrypt = Utility.load_key()
+
         while True:
             if len(username) == 0:
-                username = input("Username: ")
-            password = input("Password: ")
+                username = input("Username: ").strip()
 
             user = Utility.fetch_userinfo(username)
             if not user:
@@ -27,16 +30,54 @@ class Menu:
                 username = ''
                 continue
 
+            if user.role == "Service Engineer" and user.temp_password:
+                # Ask for temp password first
+                print(f"Temporary password required for Service Engineer login: \"{user.temp_password}\"")
+                entered_temp_pass = input("Enter temporary password: ").strip()
+
+                # user.temp_password is already decrypted, so no need to decrypt again
+                if entered_temp_pass != user.temp_password:
+                    print("Incorrect temporary password")
+                    suspicious_count += 1
+                    Utility.log_activity(username, "Temp password attempt", "Incorrect temp password entered", suspicious_count)
+                    continue
+
+                print("Temporary password accepted. Please create a new password.")
+
+                while True:
+                    new_password = input("New password: ").strip()
+                    if not Validate.is_valid_password(new_password):
+                        print("Password does not meet complexity requirements. Try again.")
+                        continue
+
+                    confirm_password = input("Confirm new password: ").strip()
+                    if new_password != confirm_password:
+                        print("Passwords do not match. Try again.")
+                        continue
+
+                    # Update the user's password in the database
+                    row_id = Utility.fetch_userinfo(user.username, row_id=True)
+                    Utility.update_passwordDB(user, new_password, row_id)
+                    Utility.update_temp_password(user, user.username, None)  # Clear temp password
+
+                    print("Password updated successfully. Logging in...")
+                    Utility.log_activity(username, "Password reset via temp password", "Password reset successful", 0)
+                    suspicious_count = 0
+                    return user
+
+            # Normal password login flow
+            password = input("Password: ")
             if user.password != hashlib.sha256(password.encode('utf-8')).hexdigest():
                 print("Invalid password")
                 suspicious_count += 1
                 Utility.log_activity(username, "Login attempt", f"Invalid password with username: \"{username}\" was used", suspicious_count)
-                password = ''
                 continue
-            
+
             suspicious_count = 0  # Reset suspicious count on successful login
-            Utility.log_activity(username, "Login succesful", "", suspicious_count)
+            Utility.log_activity(username, "Login successful", "", suspicious_count)
             return user
+
+
         
 
 
@@ -118,7 +159,7 @@ class Menu:
                 case "7":
                     SystemAdminFunctions.delete_other_account(user)
                 case "8":
-                    print("reset service engineer password (temp password)")
+                    SystemAdminFunctions.assign_temp_password(user)
                 case "9":
                     SystemAdminFunctions.update_own_account(user)
                 case "10":
@@ -191,7 +232,7 @@ class Menu:
                 case "5":
                     SystemAdminFunctions.delete_other_account(user)
                 case "6":
-                    print("Reset Service Engineer password (temp password) selected.")
+                    SystemAdminFunctions.assign_temp_password(user)
                 case "7":
                     SystemAdminFunctions.print_logs(user)
                 case "8":

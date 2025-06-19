@@ -257,3 +257,21 @@ class SystemAdminFunctions:
                 additional_info=str(e),
                 suspicious_count=3
             )
+
+    @staticmethod
+    def assign_temp_password(admin_user: User):
+        if admin_user.role not in ["System Administrator", "Super Administrator"]:
+            print("Access denied: only System or Super Administrators can assign temp passwords.")
+            return
+
+        target_username = input("Enter the Service Engineer username to reset password for: ").strip()
+        service_engineer = Utility.fetch_searchuser(target_username, role="Service Engineer")
+
+        if not service_engineer:
+            print(f"No Service Engineer user found matching '{target_username}'.")
+            return
+
+        temp_password = Utility.generate_temp_password()
+
+        # Call the utility method to update temp_password in DB
+        Utility.update_temp_password(admin_user, target_username, temp_password)

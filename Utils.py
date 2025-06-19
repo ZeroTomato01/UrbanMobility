@@ -10,6 +10,9 @@ import zipfile
 import shutil
 import hashlib
 import copy
+import string
+import secrets
+
 
 class Utility:
     def __init__(self):
@@ -219,7 +222,8 @@ class Utility:
                     first_name=encrypt.decrypt(row['first_name']).decode('utf-8') if row['first_name'] else "",
                     last_name=encrypt.decrypt(row['last_name']).decode('utf-8') if row['last_name'] else "",
                     registration_date=reg_date,
-                    restore_code=row['restore_code'] if 'restore_code' in row.keys() else None
+                    restore_code=row['restore_code'] if 'restore_code' in row.keys() else None,
+                    temp_password=encrypt.decrypt(row['temp_password']).decode('utf-8') if row['temp_password'] else None
                 )
 
         if check_username:
@@ -936,3 +940,78 @@ class Utility:
             return backup_filename if os.path.exists(backup_path) else None
         except:
             return None
+
+
+    @staticmethod
+    def update_temp_password(admin_user: User, target_username: str, temp_password: str | None):
+        """
+        Assign or clear a temporary password for a Service Engineer.
+        If temp_password is None, the field is cleared in the database.
+        """
+        try:
+            encrypt = Utility.load_key()
+            conn = sqlite3.connect('users.db')
+            conn.row_factory = sqlite3.Row
+            c = conn.cursor()
+
+            # Fetch all users and find the matching Service Engineer by decrypted username
+            c.execute("SELECT rowid, username, role FROM users")
+            rows = c.fetchall()
+
+            target_rowid = None
+            for row in rows:
+                decrypted_username = encrypt.decrypt(row['username']).decode('utf-8')
+                if decrypted_username == target_username and row['role'] == "Service Engineer":
+                    target_rowid = row['rowid']
+                    break
+
+            if target_rowid is not None:
+                if temp_password is None:
+                    c.execute("""
+                        UPDATE users
+                        SET temp_password = NULL
+                        WHERE rowid = ?
+                    """, (target_rowid,))
+                    message = f"Temporary password for '{target_username}' has been cleared."
+                else:
+                    encrypted_temp_pass = encrypt.encrypt(temp_password.encode('utf-8'))
+                    c.execute("""
+                        UPDATE users
+                        SET temp_password = ?
+                        WHERE rowid = ?
+                    """, (encrypted_temp_pass, target_rowid))
+                    message = f"Temporary password set for '{target_username}'."
+
+                conn.commit()
+                conn.close()
+                print(message)
+                Utility.log_activity(
+                    admin_user.username,
+                    "Updated temp password",
+                    additional_info=message,
+                    suspicious_count=0
+                )
+            else:
+                conn.close()
+                print(f"Service Engineer user '{target_username}' not found.")
+                Utility.log_activity(
+                    admin_user.username,
+                    "Assign temp password failed",
+                    additional_info=f"User not found or not a Service Engineer: {target_username}",
+                    suspicious_count=3
+                )
+        except sqlite3.Error as e:
+            print(f"SQLite error: {e}")
+            Utility.log_activity(
+                admin_user.username,
+                "Assign temp password failed",
+                additional_info=str(e),
+                suspicious_count=3
+            )
+
+
+
+    @staticmethod
+    def generate_temp_password(length=12):
+        alphabet = string.ascii_letters + string.digits
+        return ''.join(secrets.choice(alphabet) for _ in range(length))
