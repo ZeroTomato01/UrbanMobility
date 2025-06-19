@@ -9,3 +9,4 @@ class User:
     first_name: str = ""
     last_name: str = ""
     registration_date: date = field(default = None)
+    restore_code: str = None  # only used for System Administrators

@@ -4,6 +4,7 @@ from Models.User import User
 from Models.Scooter import Scooter
 from Utils import Utility
 from Validate import Validate
+import os
 
 
 class SystemAdminFunctions:
@@ -208,3 +209,51 @@ class SystemAdminFunctions:
             delete = input("Delete traveller? (Y/N)").lower()
             if delete == 'y':
                 Utility.delete_traveller(user, delete_traveller)
+
+    @staticmethod
+    def restore_backup(user: User):
+        if user.role != "System Administrator":
+            print("Access denied: only System Administrators can perform a restore.")
+            return
+
+        if not user.restore_code:
+            print("No restore code found. Ask a Super Administrator to assign one first.")
+            return
+
+        try:
+            # Translate restore_code to backup filename
+            backup_filename = Utility.get_backup_filename_from_restore_code(user.restore_code)
+            if not backup_filename:
+                print("Invalid restore code or no matching backup found.")
+                return
+
+            backup_path = os.path.join("backups", backup_filename)
+
+            print(f"\nYou are about to restore backup: {backup_filename}")
+            confirm = input("Are you sure? This will overwrite current database files. Type 'yes' to confirm: ").strip().lower()
+
+            if confirm != "yes":
+                print("Restore cancelled. Returning to menu.")
+                return
+
+            # Perform the actual restore using the utility method you provided
+            Utility.restore_backup(backup_path)
+            Utility.revoke_backup_code(user, user)
+            
+            
+            # Log the action
+            Utility.log_activity(
+                user.username,
+                "Restored backup",
+                additional_info=f"Restored backup from {backup_filename}",
+                suspicious_count=0
+            )
+
+        except Exception as e:
+            print(f"Restore failed: {e}")
+            Utility.log_activity(
+                user.username,
+                "Restore failed",
+                additional_info=str(e),
+                suspicious_count=3
+            )

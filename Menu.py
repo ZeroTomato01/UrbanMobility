@@ -126,7 +126,7 @@ class Menu:
                 case "11":
                     SystemAdminFunctions.create_backup(user)
                 case "12":
-                    print("restore backup (with backup code)")
+                    SystemAdminFunctions.restore_backup(user)
                 case "13":
                     SystemAdminFunctions.print_logs(user)
                 case "14":
@@ -213,11 +213,11 @@ class Menu:
                 case "16":
                     SystemAdminFunctions.create_backup(user)
                 case "17":
-                    print("Restore backup selected. (any backup)")
+                    print("Please generate a restore code first. Then you can let a sytem admin restore a backup.")
                 case "18":
-                    print("Generate restore-code selected.")
+                    SuperAdminFunctions.generate_restoreCode(user)
                 case "19":
-                    print("Revoke restore-code selected.")
+                    SuperAdminFunctions.revoke_backup_code(user)
                 case _:
                     print("Invalid option. Please try again.")
                     suspicious_count += 1

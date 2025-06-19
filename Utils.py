@@ -202,6 +202,7 @@ class Utility:
         c.execute("SELECT rowid, * FROM users")
         rows = c.fetchall()
         conn.close()
+
         for row in rows:
             decrypted_username = encrypt.decrypt(row['username']).decode('utf-8')
             if decrypted_username == username:
@@ -210,17 +211,21 @@ class Utility:
                     return False  # Username exists
                 if row_id:
                     return row['rowid']
+
                 return User(
                     role=row['role'],
-                    username=encrypt.decrypt(row['username']).decode('utf-8'),
+                    username=decrypted_username,
                     password=row['password'],
-                    first_name=encrypt.decrypt(row['first_name']).decode('utf-8') if row['first_name'] else row['first_name'],
-                    last_name=encrypt.decrypt(row['last_name']).decode('utf-8') if row['last_name'] else row['last_name'],
-                    registration_date=reg_date
+                    first_name=encrypt.decrypt(row['first_name']).decode('utf-8') if row['first_name'] else "",
+                    last_name=encrypt.decrypt(row['last_name']).decode('utf-8') if row['last_name'] else "",
+                    registration_date=reg_date,
+                    restore_code=row['restore_code'] if 'restore_code' in row.keys() else None
                 )
+
         if check_username:
             return True
         return None
+
     
     @staticmethod
     def fetch_scooter_info(search_key):
@@ -522,6 +527,47 @@ class Utility:
             print(f"SQLite error: {e}")
             Utility.log_activity(user.username, "Update user in DB", additional_info=f"Update user failed: {e}", suspicious_count=3)
             return
+        
+    @staticmethod
+    def update_backup_code(super_admin: User, target_user: User, restore_code: str):
+        try:
+            encrypt = Utility.load_key()
+            conn = sqlite3.connect('users.db')
+            conn.row_factory = sqlite3.Row
+            c = conn.cursor()
+
+            c.execute("SELECT rowid, username FROM users")
+            rows = c.fetchall()
+            target_rowid = None
+
+            for row in rows:
+                decrypted_username = encrypt.decrypt(row['username']).decode('utf-8')
+                if decrypted_username == target_user.username:
+                    target_rowid = row['rowid']
+                    break
+
+            if target_rowid is not None:
+                c.execute('''
+                    UPDATE users
+                    SET restore_code = ?
+                    WHERE rowid = ?
+                ''', (
+                    restore_code,
+                    target_rowid
+                ))
+                conn.commit()
+                conn.close()
+                print("Restore code updated successfully.")
+                Utility.log_activity(super_admin.username, "Assigned restore code", additional_info=f"Assigned restore code to {target_user.username}", suspicious_count=0)
+            else:
+                conn.close()
+                print(f"User '{target_user.username}' not found.")
+                Utility.log_activity(super_admin.username, "Assign restore code failed", additional_info=f"User not found: {target_user.username}", suspicious_count=3)
+
+        except sqlite3.Error as e:
+            print(f"SQLite error: {e}")
+            Utility.log_activity(super_admin.username, "Assign restore code failed", additional_info=str(e), suspicious_count=3)
+
     
 
     @staticmethod
@@ -652,6 +698,110 @@ class Utility:
         shutil.rmtree(temp_dir)
         print("Restore complete.")
 
+
+    @staticmethod
+    def generate_backup_code(backup_filename: str, user: User) -> str:
+        try:
+            backup_path = os.path.join("backups", backup_filename)
+            if not os.path.exists(backup_path):
+                raise FileNotFoundError(f"Backup file '{backup_path}' does not exist.")
+
+            # Ensure it starts with "backup_" and ends with ".zip"
+            if not (backup_filename.startswith("backup_") and backup_filename.endswith(".zip")):
+                raise ValueError("Invalid backup filename format.")
+            
+            # Strip prefix and suffix
+            timestamp_str = backup_filename.replace("backup_", "").replace(".zip", "")
+
+            # Ensure timestamp format is valid
+            datetime_obj = datetime.strptime(timestamp_str, "%Y%m%d_%H%M%S")
+            
+            # Format readable restore code
+            restore_code = f"RESTORE-{datetime_obj.strftime('%Y%m%d-%H%M%S')}"
+            
+            # Optional logging
+            Utility.log_activity(
+                user.username,
+                "Generated restore code",
+                additional_info=f"Generated code {restore_code} for backup {backup_filename}",
+                suspicious_count=0
+            )
+
+            return restore_code
+        except Exception as e:
+            print(f"Failed to generate restore code: {e}")
+            Utility.log_activity(
+                user.username,
+                "Restore code generation failed",
+                additional_info=str(e),
+                suspicious_count=3
+            )
+            return None
+        
+
+    @staticmethod
+    def revoke_backup_code(invoking_user: User, target_user: User):
+        try:
+            encrypt = Utility.load_key()
+            conn = sqlite3.connect('users.db')
+            conn.row_factory = sqlite3.Row
+            c = conn.cursor()
+
+            c.execute("SELECT rowid, username FROM users")
+            rows = c.fetchall()
+            target_rowid = None
+
+            for row in rows:
+                decrypted_username = encrypt.decrypt(row['username']).decode('utf-8')
+                if decrypted_username == target_user.username:
+                    target_rowid = row['rowid']
+                    break
+
+            if target_rowid is not None:
+                c.execute("UPDATE users SET restore_code = NULL WHERE rowid = ?", (target_rowid,))
+                conn.commit()
+                conn.close()
+
+                if invoking_user.role == "Super Administrator":
+                    print(f"Restore code revoked for '{target_user.username}'.")
+                    Utility.log_activity(
+                        invoking_user.username,
+                        "Revoked restore code",
+                        additional_info=f"Restore code revoked from {target_user.username}",
+                        suspicious_count=0
+                    )
+                elif invoking_user.role == "System Administrator":
+                    # Used internally after a restore
+                    print("Restore code cleared after successful restoration.")
+                    Utility.log_activity(
+                        invoking_user.username,
+                        "System restore",
+                        additional_info=f"Restore code automatically cleared after restoring from backup.",
+                        suspicious_count=0
+                    )
+                else:
+                    print("Restore code revoked.")
+            else:
+                conn.close()
+                print(f"User '{target_user.username}' not found.")
+                Utility.log_activity(
+                    invoking_user.username,
+                    "Revoke restore code failed",
+                    additional_info=f"User not found: {target_user.username}",
+                    suspicious_count=3
+                )
+
+        except sqlite3.Error as e:
+            print(f"SQLite error while revoking restore code: {e}")
+            Utility.log_activity(
+                invoking_user.username,
+                "Revoke restore code failed",
+                additional_info=str(e),
+                suspicious_count=3
+            )
+
+
+
     @staticmethod
     def delete_user(user: User, delete_user: User):
         encrypt = Utility.load_key()
@@ -773,3 +923,16 @@ class Utility:
         print(f"Mobile Phone Number: {traveller.mobile_phone}")
         print(f"Driving License Number: {traveller.driving_license_number}")
         print(f"Registration Date: {traveller.registration_date.isoformat()}")
+
+
+    @staticmethod
+    def get_backup_filename_from_restore_code(restore_code: str) -> str:
+        try:
+            if not restore_code.startswith("RESTORE-"):
+                return None
+            timestamp = restore_code.replace("RESTORE-", "").replace("-", "_")
+            backup_filename = f"backup_{timestamp}.zip"
+            backup_path = os.path.join("backups", backup_filename)
+            return backup_filename if os.path.exists(backup_path) else None
+        except:
+            return None
