@@ -132,7 +132,7 @@ class Menu:
                 case "14":
                     SystemAdminFunctions.add_traveller(user)
                 case "15":
-                    print("Delete traveller")
+                    SystemAdminFunctions.delete_traveller(user)
                 case "16":
                     SystemAdminFunctions.add_scooter(user)
                 case "17":
@@ -195,7 +195,7 @@ class Menu:
                 case "7":
                     SystemAdminFunctions.print_logs(user)
                 case "8":
-                    print("Add Traveller selected.")
+                    SystemAdminFunctions.add_traveller(user)
                 case "9":
                     print("Delete Traveller selected.")
                 case "10":

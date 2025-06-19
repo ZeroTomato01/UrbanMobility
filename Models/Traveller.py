@@ -15,3 +15,4 @@ class Traveller:
     email_address: str = ""
     mobile_phone: str = ""
     driving_license_number: str = ""
+    registration_date: date = field(default = None)

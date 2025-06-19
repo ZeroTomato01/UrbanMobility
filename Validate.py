@@ -60,7 +60,8 @@ class Validate:
     def Validate_addtraveller(user: User, traveller: Traveller):
         traveller.first_name = Validate.validate_input("Enter first name (2-20): ", username=user.username, min_length=2, max_length=20)
         traveller.last_name = Validate.validate_input("Enter last name (2-20): ", username=user.username, min_length=2, max_length=20)
-        traveller.birthday = Validate.validate_input("Enter birth date (YYYY-MM-DD): ", username=user.username, custom_validator=Validate.is_valid_birthdate, min_length=10, max_length=10)
+        birthday_str = Validate.validate_input("Enter birth date (YYYY-MM-DD): ", username=user.username, custom_validator=Validate.is_valid_birthdate, min_length=10, max_length=10)
+        traveller.birthday = datetime.strptime(birthday_str, '%Y-%m-%d').date()
         traveller.gender = Validate.validate_input("Enter gender (male/female): ", username=user.username, custom_validator=Validate.is_valid_gender, min_length=4, max_length=6)
         traveller.street_name = Validate.validate_input("Enter street name: ", username=user.username, min_length=1, max_length=100)
         traveller.house_number = Validate.validate_input("Enter house number with unit/apartment number: ", username=user.username, min_length=1, max_length=20) #20 is likely too much but there can be lengthy designators

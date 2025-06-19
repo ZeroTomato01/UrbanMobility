@@ -6,6 +6,8 @@ from SeedDB import SeedDB
 
 
 def main():
+    InitDB.Init_travellerdb()
+
     user = Menu.login()
     while True:
         if user.role == "Super Administrator":

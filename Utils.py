@@ -84,7 +84,21 @@ class Utility:
     @staticmethod
     def Add_traveller(user: User, traveller: Traveller):
         try:
-            conn = sqlite3.connect('traveller.db')
+            encrypt = Utility.load_key()
+            enc_first_name = encrypt.encrypt(traveller.first_name.encode('utf-8'))
+            enc_last_name = encrypt.encrypt(traveller.last_name.encode('utf-8'))
+            enc_birthday = encrypt.encrypt(traveller.birthday.isoformat().encode('utf-8'))
+            enc_gender = encrypt.encrypt(traveller.gender.encode('utf-8'))
+            enc_street_name = encrypt.encrypt(traveller.street_name.encode('utf-8'))
+            enc_house_number = encrypt.encrypt(traveller.house_number.encode('utf-8'))
+            enc_zip_code = encrypt.encrypt(traveller.zip_code.encode('utf-8'))
+            enc_city = encrypt.encrypt(traveller.city.encode('utf-8'))
+            enc_email_address = encrypt.encrypt(traveller.email_address.encode('utf-8'))
+            enc_mobile_phone = encrypt.encrypt(traveller.mobile_phone.encode('utf-8'))
+            enc_driving_license_number = encrypt.encrypt(traveller.driving_license_number.encode('utf-8'))
+
+
+            conn = sqlite3.connect('travellers.db')
             c = conn.cursor()
             c.execute('''
                 INSERT INTO travellers (
@@ -92,17 +106,17 @@ class Utility:
                     zip_code, city, email_address, mobile_phone, driving_license_number)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
-                traveller.first_name,
-                traveller.last_name,
-                traveller.birthday,
-                traveller.gender,
-                traveller.street_name,
-                traveller.house_number,
-                traveller.zip_code,
-                traveller.city,
-                traveller.email_address,
-                traveller.mobile_phone,
-                traveller.driving_license_number,
+                enc_first_name,
+                enc_last_name,
+                enc_birthday,
+                enc_gender,
+                enc_street_name,
+                enc_house_number,
+                enc_zip_code,
+                enc_city,
+                enc_email_address,
+                enc_mobile_phone,
+                enc_driving_license_number
             ))
             conn.commit()
             conn.close()
@@ -301,6 +315,62 @@ class Utility:
             return user
         else:
             return None
+        
+    @staticmethod
+    def fetch_search_traveller(search_key):
+        encrypt = Utility.load_key()
+        conn = sqlite3.connect('travellers.db')
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute("SELECT rowid, * FROM travellers")
+        rows = c.fetchall()
+        conn.close()
+
+        search_key_lower = search_key.lower()
+        best_score = -1
+        best_row = None
+
+        for row in rows:
+            # if role and row['role'].lower() != role.lower():
+            #     continue
+            fields_to_search = [
+                
+                str(encrypt.decrypt(row['first_name']).decode('utf-8') if row['first_name'] else row['first_name']),
+                str(encrypt.decrypt(row['last_name']).decode('utf-8') if row['last_name'] else row['last_name']),
+                str(encrypt.decrypt(row['birthday']).decode('utf-8') if row['birthday'] else row['birthday']),
+                str(encrypt.decrypt(row['gender']).decode('utf-8') if row['gender'] else row['gender']),
+                str(encrypt.decrypt(row['street_name']).decode('utf-8') if row['street_name'] else row['street_name']),
+                str(encrypt.decrypt(row['house_number']).decode('utf-8') if row['house_number'] else row['house_number']),
+                str(encrypt.decrypt(row['zip_code']).decode('utf-8') if row['zip_code'] else row['zip_code']),
+                str(encrypt.decrypt(row['city']).decode('utf-8') if row['city'] else row['city']),
+                str(encrypt.decrypt(row['email_address']).decode('utf-8') if row['email_address'] else row['email_address']),
+                str(encrypt.decrypt(row['mobile_phone']).decode('utf-8') if row['mobile_phone'] else row['mobile_phone']),
+                str(encrypt.decrypt(row['driving_license_number']).decode('utf-8') if row['driving_license_number'] else row['driving_license_number']),
+            ]
+            # Score: count of fields containing the search key (higher is better)
+            score = sum(search_key_lower in str(field).lower() for field in fields_to_search)
+            if score > best_score:
+                best_score = score
+                best_row = row
+
+        if best_row and best_score > 0:
+            traveller = Traveller(
+                first_name=encrypt.decrypt(best_row['first_name']).decode('utf-8') if best_row['first_name'] else "",
+                last_name=encrypt.decrypt(best_row['last_name']).decode('utf-8') if best_row['last_name'] else "",
+                birthday=encrypt.decrypt(best_row['birthday']).decode('utf-8') if best_row['birthday'] else "",
+                gender=encrypt.decrypt(best_row['gender']).decode('utf-8') if best_row['gender'] else "",
+                street_name=encrypt.decrypt(best_row['street_name']).decode('utf-8') if best_row['street_name'] else "",
+                house_number=encrypt.decrypt(best_row['house_number']).decode('utf-8') if best_row['house_number'] else "",
+                zip_code=encrypt.decrypt(best_row['zip_code']).decode('utf-8') if best_row['zip_code'] else "",
+                city=encrypt.decrypt(best_row['city']).decode('utf-8') if best_row['city'] else "",
+                email_address=encrypt.decrypt(best_row['email_address']).decode('utf-8') if best_row['email_address'] else "",
+                mobile_phone=encrypt.decrypt(best_row['mobile_phone']).decode('utf-8') if best_row['mobile_phone'] else "",
+                driving_license_number=encrypt.decrypt(best_row['driving_license_number']).decode('utf-8') if best_row['driving_license_number'] else "",
+                registration_date= datetime.strptime(best_row['registration_date'], "%Y-%m-%d").date() if best_row['registration_date'] else None,
+            )
+            return traveller
+        else:
+            return None
     
     @staticmethod
     def update_passwordDB(user: User, password, row_id):
@@ -455,7 +525,7 @@ class Utility:
     @staticmethod
     def create_backup(user: User):
         try:
-            db_files = ['users.db', 'scooters.db', 'traveller.db']
+            db_files = ['users.db', 'scooters.db', 'travellers.db']
             backup_dir = 'backups'
             os.makedirs(backup_dir, exist_ok=True)
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -483,7 +553,7 @@ class Utility:
         """
         Replace the current databases with those from the given backup zip file.
         """
-        db_files = ['users.db', 'scooters.db', 'traveller.db']
+        db_files = ['users.db', 'scooters.db', 'travellers.db']
 
         # Extract backup zip to a temporary directory
         temp_dir = "temp_restore"
@@ -532,6 +602,38 @@ class Utility:
             Utility.log_activity(user.username, "Delete user from DB", additional_info=f"Failed to delete user: {delete_user.username} from DB", suspicious_count = 3)
     
     @staticmethod
+    def delete_traveller(user: User, traveller: Traveller):
+        encrypt = Utility.load_key()
+
+        conn = sqlite3.connect('travellers.db')
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute("SELECT ROWID, first_name, last_name, birthday, zip_code FROM travellers")
+        rows = c.fetchall()
+        for row in rows:
+            print(row.keys())
+
+        target_rowid = None
+        for row in rows:
+            decrypted_first_name = encrypt.decrypt(row['first_name']).decode('utf-8')
+            decrypted_last_name = encrypt.decrypt(row['last_name']).decode('utf-8')
+            decrypted_birthday = encrypt.decrypt(row['birthday']).decode('utf-8')
+            decrypted_zip_code = encrypt.decrypt(row['zip_code']).decode('utf-8')
+            if decrypted_first_name == traveller.first_name and decrypted_last_name == traveller.last_name and decrypted_birthday == traveller.birthday and decrypted_zip_code == traveller.zip_code: 
+                target_rowid = row['rowid']
+                break
+
+        if target_rowid is not None:
+            c.execute("DELETE FROM travellers WHERE rowid = ?", (target_rowid,))
+            conn.commit()
+            conn.close()
+            print(f"traveller '{traveller.first_name} {traveller.last_name}, {traveller.birthday}, {traveller.zip_code}' deleted successfully.")
+            Utility.log_activity(user.username, "Delete traveller from DB", additional_info=f"Deleted traveller: {traveller.first_name} {traveller.last_name}, {traveller.birthday}, {traveller.zip_code} from DB", suspicious_count = 0)
+        else:
+            print(f"traveller '{traveller.first_name} {traveller.last_name}, {traveller.birthday}, {traveller.zip_code}' not found.")
+            Utility.log_activity(user.username, "Delete traveller from DB", additional_info=f"Failed to delete traveller: {traveller.first_name} {traveller.last_name}, {traveller.birthday}, {traveller.zip_code} from DB", suspicious_count = 3)
+
+    @staticmethod
     def delete_scooterfromDB(user: User, scooter: Scooter):
         conn = sqlite3.connect('scooters.db')
         conn.row_factory = sqlite3.Row
@@ -577,3 +679,19 @@ class Utility:
         print(f"Mileage: {scooter.mileage}")
         print(f"Last Maintenance Date: {scooter.last_maintenance_date}")
         print(f"In Service Date: {scooter.in_service_date}")
+
+    @staticmethod
+    def print_travelerinfo(traveller: Traveller):
+        print("=== User Information ===")
+        print(f"First Name: {traveller.first_name}")
+        print(f"Last Name: {traveller.last_name}")
+        print(f"Birth Date: {traveller.birthday}")
+        print(f"Gender: {traveller.gender}")
+        print(f"Street Name: {traveller.street_name}")
+        print(f"House Number: {traveller.house_number}")
+        print(f"Zipcode: {traveller.zip_code}")
+        print(f"City: {traveller.city}")
+        print(f"Email Address: {traveller.email_address}")
+        print(f"Mobile Phone Number: {traveller.mobile_phone}")
+        print(f"Driving License Number: {traveller.driving_license_number}")
+        print(f"Registration Date: {traveller.registration_date.isoformat()}")

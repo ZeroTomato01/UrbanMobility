@@ -173,3 +173,20 @@ class SystemAdminFunctions:
         new_traveller = Traveller()
         new_traveller = Validate.Validate_addtraveller(user, new_traveller)
         Utility.Add_traveller(user, new_traveller)
+
+    @staticmethod
+    def delete_traveller(user: User):
+        print("Delete atraveller selected")
+        while True:
+            keyword = input("Enter traveller info to search: ").strip()
+            delete_traveller = Utility.fetch_search_traveller(keyword)
+            if not delete_traveller:
+                print("No traveller found with that info.")
+                end_search = input("end search? (Y/N)").lower()
+                if end_search == 'y':
+                    return
+                continue
+            Utility.print_travelerinfo(delete_traveller)
+            delete = input("Delete traveller? (Y/N)").lower()
+            if delete == 'y':
+                Utility.delete_traveller(user, delete_traveller)

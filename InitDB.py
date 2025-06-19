@@ -8,11 +8,10 @@ class InitDB:
     
     @staticmethod
     def Init_travellerdb():
-        conn = sqlite3.connect('traveller.db')
+        conn = sqlite3.connect('travellers.db')
         c = conn.cursor()
         c.execute('''
             CREATE TABLE IF NOT EXISTS travellers (
-                customer_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 first_name TEXT NOT NULL, 
                 last_name TEXT NOT NULL,
                 birthday TEXT NOT NULL,
@@ -191,7 +190,7 @@ class InitDB:
             }
         ]
 
-        conn = sqlite3.connect('traveller.db')
+        conn = sqlite3.connect('travellers.db')
         c = conn.cursor()
         for t in dummy_travellers:
             encrypted_fields = [encrypt.encrypt(str(t[field]).encode('utf-8')) for field in [
@@ -277,7 +276,7 @@ class InitDB:
     
     @staticmethod
     def Del_travellerdb():
-        conn = sqlite3.connect('traveller.db')
+        conn = sqlite3.connect('travellers.db')
         c = conn.cursor()
         c.execute('DROP TABLE IF EXISTS travellers')
         conn.commit()
