@@ -575,79 +575,93 @@ class Utility:
     
 
     @staticmethod
-    def update_traveller(user: User, traveller: Traveller):
-        
+    def update_traveller(user: User, traveller: Traveller): #traveller here is decrypted and accurate
         try:
-            traveller_old = copy.deepcopy(traveller)
-            traveller = Validate.Validate_addtraveller(user, traveller)
+            traveller_old = copy.deepcopy(traveller) #should not be re-encrypted for comparison with database
+            traveller = Validate.Validate_addtraveller(user, traveller) #generates a new not-yet-encrypted traveller
             encrypt = Utility.load_key()
-
-            enc_first_name_old = encrypt.encrypt(traveller_old.first_name.encode('utf-8'))
-            enc_last_name_old = encrypt.encrypt(traveller_old.last_name.encode('utf-8'))
-            enc_birthday_old = encrypt.encrypt(traveller_old.birthday.isoformat().encode('utf-8'))
-            enc_zip_code_old = encrypt.encrypt(traveller_old.zip_code.encode('utf-8'))
-            enc_email_address_old = encrypt.encrypt(traveller_old.email_address.encode('utf-8'))
-
-            enc_first_name = encrypt.encrypt(traveller.first_name.encode('utf-8'))
-            enc_last_name = encrypt.encrypt(traveller.last_name.encode('utf-8'))
-            enc_birthday = encrypt.encrypt(traveller.birthday.isoformat().encode('utf-8'))
-            enc_gender = encrypt.encrypt(traveller.gender.encode('utf-8'))
-            enc_street_name = encrypt.encrypt(traveller.street_name.encode('utf-8'))
-            enc_house_number = encrypt.encrypt(traveller.house_number.encode('utf-8'))
-            enc_zip_code = encrypt.encrypt(traveller.zip_code.encode('utf-8'))
-            enc_city = encrypt.encrypt(traveller.city.encode('utf-8'))
-            enc_email_address = encrypt.encrypt(traveller.email_address.encode('utf-8'))
-            enc_mobile_phone = encrypt.encrypt(traveller.mobile_phone.encode('utf-8'))
-            enc_driving_license_number = encrypt.encrypt(traveller.driving_license_number.encode('utf-8'))
-
-
+            
             conn = sqlite3.connect('travellers.db')
+            conn.row_factory = sqlite3.Row
             c = conn.cursor()
-            c.execute('''
-                UPDATE travellers SET
-                    first_name = ?,
-                    last_name = ?,
-                    birthday = ?,
-                    gender = ?,
-                    street_name = ?,
-                    house_number = ?,
-                    zip_code = ?,
-                    city = ?,
-                    email_address = ?,
-                    mobile_phone = ?,
-                    driving_license_number = ?
-                WHERE first_name = ?
-                    AND last_name = ?
-                    AND birthday = ?
-                    AND zip_code = ?
-                    AND email_address = ?
-            ''', (
-                enc_first_name,
-                enc_last_name,
-                enc_birthday,
-                enc_gender,
-                enc_street_name,
-                enc_house_number,
-                enc_zip_code,
-                enc_city,
-                enc_email_address,
-                enc_mobile_phone,
-                enc_driving_license_number,
-                enc_first_name_old,  # WHERE clause starts here
-                enc_last_name_old,
-                enc_birthday_old,
-                enc_zip_code_old,
-                enc_email_address_old
-            ))
-            conn.commit()
-            conn.close()
-            print(f"traveller attributes updated successfully to {traveller.first_name} {traveller.last_name}")
-            print("traveller attributes updated successfully.")
-            Utility.log_activity(user.username, "Update traveller to DB", 
-                                 additional_info=f"Update original traveller {traveller_old.first_name} {traveller_old.last_name}, {traveller_old.birthday}, {traveller_old.zip_code} to DB succesful", suspicious_count = 0)
+            c.execute("SELECT rowid, first_name, last_name, birthday, zip_code, email_address FROM travellers")
+            rows = c.fetchall()
+            target_rowid = None
+
+            print(f"{traveller_old.first_name} {traveller_old.last_name}, {traveller_old.birthday}, {traveller_old.email_address}, {traveller_old.zip_code}")
+
+            for row in rows: # for each row, decrypt field and find match with traveller_old
+                decrypted_first_name = encrypt.decrypt(row['first_name']).decode('utf-8')
+                decrypted_last_name = encrypt.decrypt(row['last_name']).decode('utf-8')
+                decrypted_birthday = datetime.strptime(str(encrypt.decrypt(row['birthday']).decode('utf-8')), "%Y-%m-%d").date()
+                decrypted_zip_code = encrypt.decrypt(row['zip_code']).decode('utf-8')
+                decrypted_email_address = encrypt.decrypt(row['email_address']).decode('utf-8')
+
+                if (    decrypted_first_name == traveller_old.first_name #traveller should be decrypted here already
+                    and decrypted_last_name == traveller_old.last_name 
+                    and decrypted_birthday == traveller_old.birthday
+                    and decrypted_zip_code == traveller_old.zip_code
+                    and decrypted_email_address == traveller_old.email_address
+                    ):
+                    target_rowid = row['rowid']
+                    break
+            if target_rowid is not None:
+                
+                enc_first_name = encrypt.encrypt(traveller.first_name.encode('utf-8'))
+                enc_last_name = encrypt.encrypt(traveller.last_name.encode('utf-8'))
+                enc_birthday = encrypt.encrypt(traveller.birthday.isoformat().encode('utf-8'))
+                enc_gender = encrypt.encrypt(traveller.gender.encode('utf-8'))
+                enc_street_name = encrypt.encrypt(traveller.street_name.encode('utf-8'))
+                enc_house_number = encrypt.encrypt(traveller.house_number.encode('utf-8'))
+                enc_zip_code = encrypt.encrypt(traveller.zip_code.encode('utf-8'))
+                enc_city = encrypt.encrypt(traveller.city.encode('utf-8'))
+                enc_email_address = encrypt.encrypt(traveller.email_address.encode('utf-8'))
+                enc_mobile_phone = encrypt.encrypt(traveller.mobile_phone.encode('utf-8'))
+                enc_driving_license_number = encrypt.encrypt(traveller.driving_license_number.encode('utf-8'))
+
+                conn = sqlite3.connect('travellers.db')
+                c = conn.cursor()
+                c.execute('''
+                    UPDATE travellers SET
+                        first_name = ?,
+                        last_name = ?,
+                        birthday = ?,
+                        gender = ?,
+                        street_name = ?,
+                        house_number = ?,
+                        zip_code = ?,
+                        city = ?,
+                        email_address = ?,
+                        mobile_phone = ?,
+                        driving_license_number = ?
+                    WHERE rowid = ?
+                ''', (
+                    enc_first_name,
+                    enc_last_name,
+                    enc_birthday,
+                    enc_gender,
+                    enc_street_name,
+                    enc_house_number,
+                    enc_zip_code,
+                    enc_city,
+                    enc_email_address,
+                    enc_mobile_phone,
+                    enc_driving_license_number,
+                    target_rowid      
+                ))
+                conn.commit()
+                conn.close()
+                print(f"traveller attributes updated successfully to {traveller.first_name} {traveller.last_name}")
+                Utility.log_activity(user.username, "Updated original traveller {traveller_old.first_name} {traveller_old.last_name}, {traveller_old.birthday}, {traveller_old.zip_code to DB succesful", 
+                                    additional_info=f"Updated original traveller {traveller_old.first_name} {traveller_old.last_name}, {traveller_old.birthday}, {traveller_old.zip_code} to DB succesful", suspicious_count = 0)
+            else:
+                conn.close()
+                print(f"traveller '{traveller_old.first_name} {traveller_old.last_name}, {traveller_old.birthday}, {traveller_old.zip_code}' not found.")
+                Utility.log_activity(user.username, f"traveller '{traveller_old.first_name} {traveller_old.last_name}, {traveller_old.birthday}, {traveller_old.zip_code}' not found.", suspicious_count=0)
+
         except sqlite3.Error as e:
-            print("Error updating traveller in the database:", e)
-            Utility.log_activity(user.username, f"Update original traveller {traveller_old.first_name} {traveller_old.last_name}, {traveller_old.birthday}, {traveller_old.zip_code} to DB", additional_info=f"Update original traveller {traveller_old.first_name} {traveller_old.last_name}, {traveller_old.birthday}, {traveller_old.zip_code} to DB failed: {e}", suspicious_count = 3)
+            print(f"Error updating traveller {traveller_old.first_name} {traveller_old.last_name}, {traveller_old.birthday}, {traveller_old.zip_code} in the database:", e)
+            Utility.log_activity(user.username, f"Update original traveller {traveller_old.first_name} {traveller_old.last_name}, {traveller_old.birthday}, {traveller_old.zip_code} to DB failed", additional_info=f"Update original traveller {traveller_old.first_name} {traveller_old.last_name}, {traveller_old.birthday}, {traveller_old.zip_code} to DB failed: {e}", suspicious_count = 0)
 
 
     @staticmethod
