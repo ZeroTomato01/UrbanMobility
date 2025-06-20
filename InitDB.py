@@ -41,8 +41,8 @@ class InitDB:
                 first_name TEXT,
                 last_name TEXT,
                 registration_date TEXT DEFAULT (date('now')),
-                Temp_p TEXT,
-                DB_backup_code TEXT,
+                Temp_password TEXT,
+                restore_code TEXT,
                 Locked INTEGER CHECK(Locked IN (0, 1)) DEFAULT 0 
             )
         ''')
