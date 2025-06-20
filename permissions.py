@@ -20,12 +20,14 @@ class Permissions:
                 "restore_backup",
                 "assign_temp_password",
                 "lockable",
+                "valid_role_assignment",
                 # Add permitted actions here
 
             },
             "Service Engineer": {
                 "service_menu",
                 "lockable",
+                "valid_role_assignment",
                 # Add permitted actions here
             }
         }

@@ -5,6 +5,7 @@ from Models.Scooter import Scooter
 from Models.Traveller import Traveller
 from Models.User import User
 from datetime import date, datetime, timedelta
+from permissions import Permissions
 import re
 
 #email is a standard python library, but might have to check if it's allowed
@@ -131,10 +132,10 @@ class Validate:
     
     @staticmethod
     def is_valid_role(role):
-        valid_roles = ["System Administrator", "Service Engineer"]
-        if role in valid_roles:
-            return True
-        return False
+        dummy_user = User()
+        dummy_user.role = role
+        # Only return True if the role has the "valid_role_assignment" permission
+        return Permissions.has_permission(dummy_user, "valid_role_assignment")
 
     @staticmethod
     def is_valid_username(username):
