@@ -6,14 +6,24 @@ class Permissions:
 
         role_permissions = {
             "Super Administrator": {
+                "generate_restore_code",
+                "revoke_backup_code",
+                "assign_temp_password",
+                "restore_backup",
+                "super_menu",
+                "super_del_account",
                 # Add permitted actions here
-
             },
             "System Administrator": {
+                "system_menu",
+                "system_del_account",
+                "restore_backup",
+                "assign_temp_password",
                 # Add permitted actions here
 
             },
             "Service Engineer": {
+                "service_menu"
                 # Add permitted actions here
             }
         }

@@ -1,8 +1,6 @@
-from Utils import Utility
 from InitDB import InitDB
 from Menu import Menu
-from Validate import Validate
-from SeedDB import SeedDB
+from permissions import Permissions
 
 
 def main():
@@ -10,11 +8,11 @@ def main():
 
     user = Menu.login()
     while True:
-        if user.role == "Super Administrator":
+        if Permissions.has_permission(user, "super_menu"):
             Menu.super_admin_menu(user)
-        elif user.role == "System Administrator":
+        elif Permissions.has_permission(user, "system_menu"):
             Menu.system_admin_menu(user)
-        elif user.role == "Service Engineer":
+        elif Permissions.has_permission(user, "service_menu"):
             Menu.service_engineer_menu(user)
 
 if __name__ == "__main__":

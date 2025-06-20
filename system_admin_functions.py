@@ -5,6 +5,7 @@ from Models.Scooter import Scooter
 from Utils import Utility
 from Validate import Validate
 import os
+from permissions import Permissions
 
 
 class SystemAdminFunctions:
@@ -33,10 +34,14 @@ class SystemAdminFunctions:
 
     @staticmethod
     def delete_other_account(user: User):
-        if user.role == "System Administrator":
-            allowed_deletes = ["Service Engineer"]
-        if user.role == "Super Administrator":
+        if Permissions.has_permission(user, "super_del_account"):
             allowed_deletes = ["Service Engineer", "System Administrator"]
+        elif Permissions.has_permission(user, "system_del_account"):
+            allowed_deletes = ["Service Engineer"]
+        else:
+            print("Access denied: only System or Super Administrators can delete other accounts.")
+            return
+    
         print("Delete account of other user selected")
         while True:
             keyword = input("Enter user info to search: ").strip()
@@ -212,8 +217,8 @@ class SystemAdminFunctions:
 
     @staticmethod
     def restore_backup(user: User):
-        if user.role != "System Administrator":
-            print("Access denied: only System Administrators can perform a restore.")
+        if not Permissions.has_permission(user, "restore_backup"):
+            print("Access denied: only System Administrators can restore backups with a restore code.")
             return
 
         if not user.restore_code:
@@ -260,8 +265,8 @@ class SystemAdminFunctions:
 
     @staticmethod
     def assign_temp_password(admin_user: User):
-        if admin_user.role not in ["System Administrator", "Super Administrator"]:
-            print("Access denied: only System or Super Administrators can assign temp passwords.")
+        if not Permissions.has_permission(admin_user, "assign_temp_password"):
+            print("Access denied: only System and Super Administrators can assign temporary passwords to Service Engineers.")
             return
 
         target_username = input("Enter the Service Engineer username to reset password for: ").strip()
