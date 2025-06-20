@@ -224,7 +224,7 @@ class Utility:
                     registration_date=reg_date,
                     restore_code=row['restore_code'] if 'restore_code' in row.keys() else None,
                     temp_password=encrypt.decrypt(row['temp_password']).decode('utf-8') if row['temp_password'] else None,
-                    locked=encrypt.decrypt(row['locked']).decode('utf-8') if row['locked'] else None
+                    locked=row['locked']
                 )
 
         if check_username:
@@ -323,7 +323,7 @@ class Utility:
                 registration_date=reg_date,
                 restore_code=row['restore_code'] if 'restore_code' in row.keys() else None,
                 temp_password=encrypt.decrypt(row['temp_password']).decode('utf-8') if row['temp_password'] else None,
-                locked=encrypt.decrypt(row['locked']).decode('utf-8') if row['locked'] else None
+                locked=row['locked']
             )
             return user
         else:
