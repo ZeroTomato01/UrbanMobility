@@ -1,7 +1,6 @@
 from InitDB import InitDB
 from Menu import Menu
 from permissions import Permissions
-from SeedDB import SeedDB
 
 
 def main():
