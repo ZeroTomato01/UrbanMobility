@@ -6,8 +6,11 @@ class Permissions:
 
         role_permissions = {
             "Super Administrator": {
+                "generate_restore_code",
+                "revoke_backup_code",
+                "assign_temp_password",
+                "restore_backup",
                 # Add permitted actions here
-
             },
             "System Administrator": {
                 # Add permitted actions here

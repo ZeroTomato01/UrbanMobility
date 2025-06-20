@@ -1,7 +1,7 @@
 from Models.User import User
-from Models.Scooter import Scooter
 from Utils import Utility
 from Validate import Validate
+from permissions import Permissions
 import os
 
 
@@ -19,7 +19,7 @@ class SuperAdminFunctions:
     
     @staticmethod
     def generate_restoreCode(user: User):
-        if user.role != "Super Administrator":
+        if Permissions.has_permission(user, "generate_restore_code") is False:
             print("Access denied: only Super Administrators can generate restore codes.")
             return
 
@@ -48,7 +48,7 @@ class SuperAdminFunctions:
 
     @staticmethod
     def revoke_backup_code(user: User):
-        if user.role != "Super Administrator":
+        if Permissions.has_permission(user, "revoke_backup_code") is False:
             print("Access denied: only Super Administrators can revoke restore codes.")
             return
 
@@ -64,8 +64,8 @@ class SuperAdminFunctions:
         
     @staticmethod
     def assign_temp_password(admin_user: User):
-        if admin_user.role not in ["Super Administrator"]:
-            print("Access denied: only Super Administrators can assign temp passwords.")
+        if Permissions.has_permission(admin_user, "assign_temp_password") is False:
+            print("Access denied: only Super Administrators assign temporary passwords to System Administrators.")
             return
 
         target_username = input("Enter the System Admin username to reset password for: ").strip()
@@ -84,8 +84,8 @@ class SuperAdminFunctions:
 
     @staticmethod
     def restore_backup_from_menu(admin_user: User):
-        if admin_user.role != "Super Administrator":
-            print("Access denied: only Super Administrators can restore backups.")
+        if Permissions.has_permission(admin_user, "restore_backup") is False:
+            print("Access denied: only Super Administrators can restore any backup freely.")
             return
 
         backup_dir = "backups"
