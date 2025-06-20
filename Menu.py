@@ -80,7 +80,7 @@ class Menu:
             if user.locked is not None and user.locked:
                 print("This account is locked due to multiple failed login attempts. Please contact an administrator to receive a temporary password.")
                 Utility.log_activity(username, "Login attempt", "Attempted login into locked account", 3)
-                return None
+                exit()
             
             # Normal password login flow
             password = input("Password: ")
