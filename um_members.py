@@ -4,8 +4,6 @@ from permissions import Permissions
 
 
 def main():
-    InitDB.Init_travellerdb()
-
     user = Menu.login()
     while True:
         if Permissions.has_permission(user, "super_menu"):

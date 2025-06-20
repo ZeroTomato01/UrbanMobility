@@ -6,6 +6,7 @@ from super_admin_functions import SuperAdminFunctions
 from service_engineer_functions import ServiceEngineerFunctions
 import sqlite3
 from Validate import Validate
+from permissions import Permissions
 
 class Menu:
     def __init__(self):
@@ -40,10 +41,16 @@ class Menu:
                     suspicious_count += 1
                     Utility.log_activity(username, "Temp password attempt", "Incorrect temp password entered", suspicious_count)
                     if suspicious_count == 3:
-                        Utility.lock_account(user)
-                        print("Account locked due to multiple failed attempts. Please contact an administrator.")
-                        Utility.log_activity(username, "Account locked", f"Invalid password with username: \"{username}\" was used", 3)
-                        exit()
+                        # Only lock the account if the user is NOT a Super Administrator
+                        if Permissions.has_permission(user, "lockable"):
+                            Utility.lock_account(user)
+                            print("Account locked due to multiple failed attempts. Please contact an administrator.")
+                            Utility.log_activity(username, "Account locked", f"Invalid password with username: \"{username}\" was used", 3)
+                            exit()
+                        else:
+                            print("This account cannot be locked. Please contact support if you have issues.")
+                            Utility.log_activity(username, "Lock prevented", "Super admin account cannot be locked", 3)
+                            exit()
                     continue
 
                 print("Temporary password accepted. Please create a new password.")
@@ -82,10 +89,15 @@ class Menu:
                 suspicious_count += 1
                 Utility.log_activity(username, "Login attempt", f"Invalid password with username: \"{username}\" was used", suspicious_count)
                 if suspicious_count == 3:
-                    Utility.lock_account(user)
-                    print("Account locked due to multiple failed attempts. Please contact an administrator.")
-                    Utility.log_activity(username, "Account locked", f"Invalid password with username: \"{username}\" was used", 3)
-                    exit()
+                    if Permissions.has_permission(user, "lockable"):
+                        Utility.lock_account(user)
+                        print("Account locked due to multiple failed attempts. Please contact an administrator.")
+                        Utility.log_activity(username, "Account locked", f"Invalid password with username: \"{username}\" was used", 3)
+                        exit()
+                    else:
+                        print("This account cannot be locked. Please contact support if you have issues.")
+                        Utility.log_activity(username, "Lock prevented", "Super admin account cannot be locked", 3)
+                        exit()
                 continue
 
             suspicious_count = 0  # Reset suspicious count on successful login

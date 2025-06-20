@@ -19,11 +19,13 @@ class Permissions:
                 "system_del_account",
                 "restore_backup",
                 "assign_temp_password",
+                "lockable",
                 # Add permitted actions here
 
             },
             "Service Engineer": {
-                "service_menu"
+                "service_menu",
+                "lockable",
                 # Add permitted actions here
             }
         }
