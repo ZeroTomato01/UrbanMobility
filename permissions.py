@@ -10,11 +10,15 @@ class Permissions:
                 "revoke_backup_code",
                 "assign_temp_password",
                 "restore_backup",
-                "super_menu"
+                "super_menu",
+                "super_del_account",
                 # Add permitted actions here
             },
             "System Administrator": {
-                "system_menu"
+                "system_menu",
+                "system_del_account",
+                "restore_backup",
+                "assign_temp_password",
                 # Add permitted actions here
 
             },
