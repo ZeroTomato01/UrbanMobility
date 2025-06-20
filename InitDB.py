@@ -42,12 +42,13 @@ class InitDB:
                 last_name TEXT,
                 registration_date TEXT DEFAULT (date('now')),
                 Temp_p TEXT,
-                DB_backup_code TEXT
+                DB_backup_code TEXT,
+                Locked INTEGER CHECK(Locked IN (0, 1)) DEFAULT 0 
             )
         ''')
         conn.commit()
         conn.close()
-
+    # 1 for true, 0 for false
     @staticmethod
     def Init_SAdb():
         SArole = "Super Administrator"

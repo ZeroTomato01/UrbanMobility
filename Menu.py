@@ -16,7 +16,6 @@ class Menu:
         print("=== Urban Mobility Backend System ===")
         username = ''
         suspicious_count = 0
-        encrypt = Utility.load_key()
 
         while True:
             if len(username) == 0:
@@ -30,9 +29,9 @@ class Menu:
                 username = ''
                 continue
 
-            if user.role in ["Service Engineer", "System Administrator"] and user.temp_password:
+            if user.temp_password:
                 # Ask for temp password first
-                print(f"Temporary password required for login: \"{user.temp_password}\"")
+                print(f"FOR DEMO PURPOSE Temporary password required for login: \"{user.temp_password}\"")
                 entered_temp_pass = input("Enter temporary password: ").strip()
 
                 # user.temp_password is already decrypted, so no need to decrypt again
@@ -40,6 +39,11 @@ class Menu:
                     print("Incorrect temporary password")
                     suspicious_count += 1
                     Utility.log_activity(username, "Temp password attempt", "Incorrect temp password entered", suspicious_count)
+                    if suspicious_count == 3:
+                        Utility.lock_account(user)
+                        print("Account locked due to multiple failed attempts. Please contact an administrator.")
+                        Utility.log_activity(username, "Account locked", f"Invalid password with username: \"{username}\" was used", 3)
+                        exit()
                     continue
 
                 print("Temporary password accepted. Please create a new password.")
@@ -65,12 +69,23 @@ class Menu:
                     suspicious_count = 0
                     return user
 
+            # Check if account is locked
+            if user.locked is not None and user.locked:
+                print("This account is locked due to multiple failed login attempts. Please contact an administrator to receive a temporary password.")
+                Utility.log_activity(username, "Login attempt", "Attempted login into locked account", 3)
+                return None
+            
             # Normal password login flow
             password = input("Password: ")
             if user.password != hashlib.sha256(password.encode('utf-8')).hexdigest():
                 print("Invalid password")
                 suspicious_count += 1
                 Utility.log_activity(username, "Login attempt", f"Invalid password with username: \"{username}\" was used", suspicious_count)
+                if suspicious_count == 3:
+                    Utility.lock_account(user)
+                    print("Account locked due to multiple failed attempts. Please contact an administrator.")
+                    Utility.log_activity(username, "Account locked", f"Invalid password with username: \"{username}\" was used", 3)
+                    exit()
                 continue
 
             suspicious_count = 0  # Reset suspicious count on successful login

@@ -223,7 +223,8 @@ class Utility:
                     last_name=encrypt.decrypt(row['last_name']).decode('utf-8') if row['last_name'] else "",
                     registration_date=reg_date,
                     restore_code=row['restore_code'] if 'restore_code' in row.keys() else None,
-                    temp_password=encrypt.decrypt(row['temp_password']).decode('utf-8') if row['temp_password'] else None
+                    temp_password=encrypt.decrypt(row['temp_password']).decode('utf-8') if row['temp_password'] else None,
+                    locked=encrypt.decrypt(row['locked']).decode('utf-8') if row['locked'] else None
                 )
 
         if check_username:
@@ -319,7 +320,10 @@ class Utility:
                 password=best_row['password'] if best_row['password'] else "",
                 first_name=encrypt.decrypt(best_row['first_name']).decode('utf-8') if best_row['first_name'] else "",
                 last_name=encrypt.decrypt(best_row['last_name']).decode('utf-8') if best_row['last_name'] else "",
-                registration_date=reg_date
+                registration_date=reg_date,
+                restore_code=row['restore_code'] if 'restore_code' in row.keys() else None,
+                temp_password=encrypt.decrypt(row['temp_password']).decode('utf-8') if row['temp_password'] else None,
+                locked=encrypt.decrypt(row['locked']).decode('utf-8') if row['locked'] else None
             )
             return user
         else:
@@ -1030,3 +1034,49 @@ class Utility:
     def generate_temp_password(length=12):
         alphabet = string.ascii_letters + string.digits
         return ''.join(secrets.choice(alphabet) for _ in range(length))
+    
+    @staticmethod
+    def lock_account(user: User):
+        try:
+            encrypt = Utility.load_key()
+            conn = sqlite3.connect('users.db')
+            conn.row_factory = sqlite3.Row
+            c = conn.cursor()
+
+            c.execute("SELECT rowid, username FROM users")
+            rows = c.fetchall()
+            target_rowid = None
+            for row in rows:
+                decrypted_username = encrypt.decrypt(row['username']).decode('utf-8')
+                if decrypted_username == user.username:
+                    target_rowid = row['rowid']
+                    break
+
+            if target_rowid is not None:
+                c.execute("UPDATE users SET locked = 1 WHERE rowid = ?", (target_rowid,))
+                conn.commit()
+                conn.close()
+                print(f"Account for '{user.username}' has been locked due to multiple failed login attempts.")
+                Utility.log_activity(
+                    user.username,
+                    "Account locked",
+                    additional_info=f"Account locked after multiple failed login attempts for user: {user.username}",
+                    suspicious_count=3
+                )
+            else:
+                conn.close()
+                print(f"User '{user.username}' not found for locking.")
+                Utility.log_activity(
+                    user.username,
+                    "Account lock failed",
+                    additional_info="User not found for locking.",
+                    suspicious_count=3
+                )
+        except sqlite3.Error as e:
+            print(f"SQLite error while locking account: {e}")
+            Utility.log_activity(
+                user.username,
+                "Account lock failed",
+                additional_info=str(e),
+                suspicious_count=3
+            )
