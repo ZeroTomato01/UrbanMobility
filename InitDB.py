@@ -41,7 +41,7 @@ class InitDB:
                 first_name TEXT,
                 last_name TEXT,
                 registration_date TEXT DEFAULT (date('now')),
-                Temp_password TEXT,
+                temp_password TEXT,
                 restore_code TEXT,
                 Locked INTEGER CHECK(Locked IN (0, 1)) DEFAULT 0 
             )
