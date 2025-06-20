@@ -120,7 +120,7 @@ class SystemAdminFunctions:
         print("Update traveller selected")
         while True:
             keyword = input("Enter user info to search: ").strip()
-            update_traveller = Utility.fetch_search_traveller(keyword)
+            update_traveller = Utility.fetch_search_traveller(keyword, decryptreturn=True)
             if not update_traveller:
                 print("No user traveller with that info.")
                 end_search = input("end search? (Y/N)").lower()
@@ -130,7 +130,7 @@ class SystemAdminFunctions:
             Utility.print_travelerinfo(update_traveller)
             update = input("Update traveller? (Y/N)").lower()
             if update == 'y':
-                Utility.update_traveller(user, update_traveller)
+                Utility.update_traveller(user, update_traveller) #traveller to update should be original encrypted traveller, not a re-encrypted decrypted one
             return
 
     @staticmethod
