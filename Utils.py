@@ -1053,7 +1053,7 @@ class Utility:
                     break
 
             if target_rowid is not None:
-                c.execute("UPDATE users SET locked = 1 WHERE rowid = ?", (target_rowid,))
+                c.execute("UPDATE users SET locked = 1, temp_password = NULL WHERE rowid = ?", (target_rowid,))
                 conn.commit()
                 conn.close()
                 print(f"Account for '{user.username}' has been locked due to multiple failed login attempts.")

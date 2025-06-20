@@ -44,7 +44,7 @@ class Menu:
                         # Only lock the account if the user is NOT a Super Administrator
                         if Permissions.has_permission(user, "lockable"):
                             Utility.lock_account(user)
-                            print("Account locked due to multiple failed attempts. Please contact an administrator.")
+                            print("Account locked due to multiple failed attempts with temp password. Please contact an administrator.")
                             Utility.log_activity(username, "Account locked", f"Invalid password with username: \"{username}\" was used", 3)
                             exit()
                         else:
