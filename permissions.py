@@ -10,13 +10,16 @@ class Permissions:
                 "revoke_backup_code",
                 "assign_temp_password",
                 "restore_backup",
+                "super_menu"
                 # Add permitted actions here
             },
             "System Administrator": {
+                "system_menu"
                 # Add permitted actions here
 
             },
             "Service Engineer": {
+                "service_menu"
                 # Add permitted actions here
             }
         }
